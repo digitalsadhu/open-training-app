@@ -1,4 +1,4 @@
-const CACHE_NAME = 'training-app-v2';
+const CACHE_NAME = 'training-app-v3';
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -28,18 +28,38 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  const appShellPaths = new Set(['/', '/index.html', '/app.js', '/styles.css']);
+  const isNavigate = request.mode === 'navigate';
+  const isAppShell = appShellPaths.has(url.pathname);
+
+  if (isNavigate || isAppShell) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          return caches.match('/index.html');
+        })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(request).then(cached => {
       if (cached) return cached;
-      return fetch(request)
-        .then(response => {
-          const copy = response.clone();
-          if (request.url.startsWith(self.location.origin)) {
-            caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-          }
-          return response;
-        })
-        .catch(() => cached);
+      return fetch(request).then(response => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+        return response;
+      });
     })
   );
 });

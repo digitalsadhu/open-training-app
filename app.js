@@ -46,6 +46,7 @@ const normalizePrograms = programs =>
         ...program,
         workouts: program.workouts.map(workout => ({
           ...workout,
+          name: workout.name || 'Workout',
           exercises: workout.exercises || []
         }))
       };
@@ -102,6 +103,59 @@ const formatTimestamp = value =>
         minute: '2-digit'
       })
     : 'Never';
+
+const normalizeSearchText = value =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+const singularize = word => {
+  if (word.endsWith('ies') && word.length > 3) return `${word.slice(0, -3)}y`;
+  if (word.endsWith('s') && word.length > 2) return word.slice(0, -1);
+  return word;
+};
+
+const getWordVariants = word => {
+  const variants = new Set([word]);
+  variants.add(singularize(word));
+  if (word.endsWith('es') && word.length > 3) {
+    variants.add(word.slice(0, -2));
+    variants.add(word.slice(0, -1));
+  }
+  return variants;
+};
+
+const scoreExerciseMatch = (name, rawQuery) => {
+  const query = normalizeSearchText(rawQuery);
+  if (!query) return 0;
+
+  const normalizedName = normalizeSearchText(name);
+  const nameWords = normalizedName.split(' ').filter(Boolean);
+  const queryWords = query.split(' ').filter(Boolean);
+  const queryVariants = queryWords.flatMap(word => Array.from(getWordVariants(word)));
+
+  let score = 0;
+
+  if (normalizedName === query) score += 500;
+  if (normalizedName.startsWith(query)) score += 300;
+  if (normalizedName.includes(query)) score += 200;
+
+  queryVariants.forEach(variant => {
+    nameWords.forEach(word => {
+      if (word === variant) score += 220;
+      if (word.startsWith(variant)) score += 170;
+      if (word.includes(variant)) score += 90;
+    });
+  });
+
+  const allTermsPresent = queryVariants.every(variant =>
+    nameWords.some(word => word.includes(variant) || variant.includes(word))
+  );
+  if (allTermsPresent) score += 120;
+
+  return score;
+};
 const createId = () => {
   if (globalThis.crypto?.randomUUID) {
     return globalThis.crypto.randomUUID();
@@ -218,6 +272,36 @@ class TrainingApp extends LitElement {
   firstUpdated() {
     if (this.exercises.length === 0 && !this.loadingExercises) {
       this.loadExerciseLibrary(true);
+    }
+    this.releaseAppCloakWhenReady();
+  }
+
+  async releaseAppCloakWhenReady() {
+    const remove = () => document.documentElement.classList.remove('app-cloak');
+    const nextPaint = () =>
+      new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const waits = [
+      customElements.whenDefined('wa-input'),
+      customElements.whenDefined('wa-button'),
+      customElements.whenDefined('wa-select'),
+      customElements.whenDefined('wa-tab-group'),
+      customElements.whenDefined('wa-tab'),
+      customElements.whenDefined('wa-tab-panel'),
+      nextPaint()
+    ];
+
+    if (document.fonts?.ready) {
+      waits.push(document.fonts.ready.catch(() => {}));
+    }
+
+    try {
+      await Promise.race([
+        Promise.all(waits),
+        new Promise(resolve => setTimeout(resolve, 3500))
+      ]);
+    } finally {
+      remove();
     }
   }
 
@@ -461,12 +545,14 @@ class TrainingApp extends LitElement {
   renderPrograms() {
     const program = this.programs.find(item => item.id === this.selectedProgramId);
     const selectedWorkout = program?.workouts?.find(item => item.id === this.selectedWorkoutId) || program?.workouts?.[0] || null;
-    const search = this.exerciseSearch.trim().toLowerCase();
+    const search = this.exerciseSearch.trim();
     const filteredExercises = this.exercises
       .map(item => ({ ...item, name: item.name || item.exercise?.name || item.translations?.[0]?.name || '' }))
       .filter(item => item.name)
-      .filter(item => item.name.toLowerCase().includes(search))
-      .slice(0, 8);
+      .map(item => ({ ...item, score: scoreExerciseMatch(item.name, search) }))
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
+      .slice(0, 30);
 
     return html`
       <section class="section">
@@ -560,7 +646,7 @@ class TrainingApp extends LitElement {
                       <div class="list-item">
                         <div>
                           <strong>${workout.name}</strong>
-                          <div class="muted">${workout.exercises.length} exercises</div>
+                          <div class="muted">${workout.exercises?.length || 0} exercises</div>
                         </div>
                         <div class="inline">
                           <wa-button

@@ -15,6 +15,10 @@
   min-height: 100%;
 }
 
+html.app-cloak body {
+  visibility: hidden;
+}
+
 * {
   box-sizing: border-box;
 }
