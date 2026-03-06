@@ -15,6 +15,7 @@ import {
   addWorkoutToProgramState,
   createProgramState,
   lastEntryForExercise,
+  logDraftSetState,
   removeDraftSetState,
   removeExerciseFromWorkoutState,
   removeWorkoutFromProgramState,
@@ -55,7 +56,9 @@ const normalizePrograms = programs =>
       ...program,
       workouts: [
         {
-          id: crypto.randomUUID(),
+          id:
+            globalThis.crypto?.randomUUID?.() ||
+            `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
           name: 'Workout A',
           exercises: migratedExercises
         }
@@ -99,7 +102,13 @@ const formatTimestamp = value =>
         minute: '2-digit'
       })
     : 'Never';
-const createId = () => crypto.randomUUID();
+const createId = () => {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+  const randomPart = Math.random().toString(36).slice(2, 10);
+  return `id-${Date.now()}-${randomPart}`;
+};
 
 class TrainingApp extends LitElement {
   static properties = {
@@ -155,12 +164,55 @@ class TrainingApp extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     console.info('[training-app] connected');
+    this.installMobileZoomGuard();
     this.loadExerciseLibrary();
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(error => {
         console.warn('Service worker registration failed', error);
       });
     }
+  }
+
+  installMobileZoomGuard() {
+    if (window.__trainingAppZoomGuardInstalled) return;
+    window.__trainingAppZoomGuardInstalled = true;
+
+    let lastTouchEnd = 0;
+    const prevent = event => event.preventDefault();
+    const listenerOptions = { passive: false, capture: true };
+
+    document.addEventListener(
+      'touchend',
+      event => {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      },
+      listenerOptions
+    );
+
+    // iOS Safari/PWA pinch gesture events
+    window.addEventListener('gesturestart', prevent, listenerOptions);
+    window.addEventListener('gesturechange', prevent, listenerOptions);
+    window.addEventListener('gestureend', prevent, listenerOptions);
+    document.addEventListener('gesturestart', prevent, listenerOptions);
+    document.addEventListener('gesturechange', prevent, listenerOptions);
+    document.addEventListener('gestureend', prevent, listenerOptions);
+
+    // Block multi-touch as early as possible
+    const blockMultiTouch = event => {
+      if (event.touches && event.touches.length > 1) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener('touchstart', blockMultiTouch, listenerOptions);
+    document.addEventListener('touchstart', blockMultiTouch, listenerOptions);
+
+    // Block multi-touch zoom while allowing normal one-finger scroll
+    window.addEventListener('touchmove', blockMultiTouch, listenerOptions);
+    document.addEventListener('touchmove', blockMultiTouch, listenerOptions);
   }
 
   firstUpdated() {
@@ -278,7 +330,7 @@ class TrainingApp extends LitElement {
 
   removeWorkout(programId, workoutId) {
     const program = this.programs.find(item => item.id === programId);
-    if (!program || program.workouts.length <= 1) return;
+    if (!program) return;
     this.programs = removeWorkoutFromProgramState(this.programs, programId, workoutId);
     if (this.selectedWorkoutId === workoutId) {
       const updatedProgram = this.programs.find(item => item.id === programId);
@@ -327,10 +379,46 @@ class TrainingApp extends LitElement {
     this.persist();
   }
 
+  logDraftSet(exerciseId, setIndex) {
+    this.draftSession = logDraftSetState(this.draftSession, exerciseId, setIndex);
+    this.persist();
+  }
+
+  resolveSpinnerValue(set, field, rawValue, inputType) {
+    if (rawValue === '' || rawValue === null || rawValue === undefined) return rawValue;
+    const currentValue = set[field];
+    const targetField = field === 'reps' ? 'targetReps' : 'targetWeight';
+    const targetValue = set[targetField];
+    const parsedRaw = Number(rawValue);
+    const parsedTarget = Number(targetValue);
+    const isLikelySpinnerStep =
+      inputType !== 'insertText' &&
+      inputType !== 'insertFromPaste' &&
+      !Number.isNaN(parsedRaw) &&
+      Math.abs(parsedRaw) <= 1;
+
+    if (
+      currentValue === '' &&
+      targetValue !== '' &&
+      !Number.isNaN(parsedTarget) &&
+      isLikelySpinnerStep
+    ) {
+      return parsedTarget + parsedRaw;
+    }
+
+    return rawValue;
+  }
+
   saveSession() {
     if (!this.draftSession) return;
+    const finalizedEntries = this.draftSession.entries.map(entry => ({
+      ...entry,
+      sets: entry.sets
+        .filter(set => set.logged)
+        .map(set => ({ reps: set.reps, weight: set.weight }))
+    }));
     this.sessions = [
-      { ...this.draftSession, savedAt: Date.now() },
+      { ...this.draftSession, entries: finalizedEntries, savedAt: Date.now() },
       ...this.sessions
     ];
     this.draftSession = null;
@@ -481,7 +569,6 @@ class TrainingApp extends LitElement {
                           >${this.selectedWorkoutId === workout.id ? 'Selected' : 'Select'}</wa-button>
                           <wa-button
                             variant="danger"
-                            ?disabled=${program.workouts.length <= 1}
                             @click=${() => this.removeWorkout(program.id, workout.id)}
                           >Delete</wa-button>
                         </div>
@@ -562,24 +649,19 @@ class TrainingApp extends LitElement {
                       <div class="list-item">
                         <div>
                           <strong>${item.name}</strong>
-                          <div class="muted">Defaults: ${formatNumber(item.defaultReps)} reps @ ${formatNumber(item.defaultWeight)}</div>
+                          <div class="muted">
+                            Defaults: ${formatNumber(item.defaultSets)} sets
+                          </div>
                         </div>
                         <div class="inline exercise-defaults-row">
                           <wa-input
                             type="number"
-                            label="Reps"
-                            style="max-width: 88px"
-                            .value=${item.defaultReps}
-                            @wa-input=${event =>
-                              this.updateWorkoutDefaults(program.id, selectedWorkout.id, item.id, 'defaultReps', event.target.value)}
-                          ></wa-input>
-                          <wa-input
-                            type="number"
-                            label="Weight"
-                            style="max-width: 96px"
-                            .value=${item.defaultWeight}
-                            @wa-input=${event =>
-                              this.updateWorkoutDefaults(program.id, selectedWorkout.id, item.id, 'defaultWeight', event.target.value)}
+                            label="Sets"
+                            min="1"
+                            style="max-width: 84px"
+                            .value=${item.defaultSets}
+                            @input=${event =>
+                              this.updateWorkoutDefaults(program.id, selectedWorkout.id, item.id, 'defaultSets', event.target.value)}
                           ></wa-input>
                           <wa-button variant="danger" @click=${() => this.removeExerciseFromWorkout(program.id, selectedWorkout.id, item.id)}
                             >Remove</wa-button
@@ -598,13 +680,21 @@ class TrainingApp extends LitElement {
 
   renderTraining() {
     const program = this.programs.find(item => item.id === this.selectedProgramId);
-    const workout = program?.workouts?.find(item => item.id === this.selectedWorkoutId) || program?.workouts?.[0] || null;
+    const workouts = program?.workouts || [];
+    const workout = workouts.find(item => item.id === this.selectedWorkoutId) || workouts[0] || null;
     return html`
       <section class="section">
         <h2>Train</h2>
         ${program && workout
           ? html`
               <div class="stack">
+                  <wa-select
+                    label="Workout"
+                    .value=${workout.id}
+                    @change=${event => this.selectWorkout(event.currentTarget.value)}
+                  >
+                    ${workouts.map(item => html`<wa-option value=${item.id}>${item.name}</wa-option>`)}
+                  </wa-select>
                 <div class="inline">
                   <div class="badge">${program.name}</div>
                   <div class="badge">${workout.name}</div>
@@ -626,16 +716,39 @@ class TrainingApp extends LitElement {
                                       type="number"
                                       label="Reps"
                                       .value=${set.reps}
-                                      @wa-input=${event =>
-                                        this.updateDraftSet(entry.exerciseId, index, 'reps', event.target.value)}
+                                      placeholder=${set.targetReps}
+                                      @input=${event => {
+                                        const nextValue = this.resolveSpinnerValue(
+                                          set,
+                                          'reps',
+                                          event.target.value,
+                                          event.inputType
+                                        );
+                                        event.target.value = nextValue;
+                                        this.updateDraftSet(entry.exerciseId, index, 'reps', nextValue);
+                                      }}
                                     ></wa-input>
                                     <wa-input
                                       type="number"
                                       label="Weight"
                                       .value=${set.weight}
-                                      @wa-input=${event =>
-                                        this.updateDraftSet(entry.exerciseId, index, 'weight', event.target.value)}
+                                      placeholder=${set.targetWeight}
+                                      @input=${event => {
+                                        const nextValue = this.resolveSpinnerValue(
+                                          set,
+                                          'weight',
+                                          event.target.value,
+                                          event.inputType
+                                        );
+                                        event.target.value = nextValue;
+                                        this.updateDraftSet(entry.exerciseId, index, 'weight', nextValue);
+                                      }}
                                     ></wa-input>
+                                    <wa-button
+                                      variant="primary"
+                                      ?disabled=${set.logged}
+                                      @click=${() => this.logDraftSet(entry.exerciseId, index)}
+                                    >${set.logged ? 'Logged' : 'Log'}</wa-button>
                                     <wa-button
                                       variant="danger"
                                       ?disabled=${entry.sets.length === 1}
@@ -654,7 +767,7 @@ class TrainingApp extends LitElement {
                           label="Session notes"
                           placeholder="How did it feel?"
                           .value=${this.draftSession.notes}
-                          @wa-input=${event => this.updateDraftNotes(event.target.value)}
+                          @input=${event => this.updateDraftNotes(event.target.value)}
                         ></wa-textarea>
                         <div class="inline">
                           <wa-button variant="primary" @click=${() => this.saveSession()}>Save session</wa-button>
@@ -707,8 +820,8 @@ class TrainingApp extends LitElement {
                   <wa-select
                     label="Pick an exercise"
                     .value=${this.selectedExercise}
-                    @wa-change=${event => {
-                      this.selectedExercise = event.target.value;
+                    @change=${event => {
+                      this.selectedExercise = event.currentTarget.value;
                       this.requestUpdate();
                     }}
                   >

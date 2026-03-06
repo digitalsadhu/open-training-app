@@ -22,6 +22,7 @@
 body {
   margin: 0;
   color: var(--text);
+  touch-action: manipulation;
 }
 
 a {
@@ -122,13 +123,31 @@ header p {
 
 .set-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 48px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 72px 48px;
   gap: 8px;
-  align-items: center;
+  align-items: end;
+}
+
+.set-row wa-input {
+  min-width: 0;
+}
+
+.set-row wa-button {
+  align-self: end;
 }
 
 .set-row button {
-  width: 48px;
+  width: 100%;
+}
+
+@media (max-width: 560px) {
+  .set-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .set-row wa-button {
+    width: 100%;
+  }
 }
 
 .list {

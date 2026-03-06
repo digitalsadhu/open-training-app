@@ -5,6 +5,7 @@ import {
   addExerciseToWorkoutState,
   addWorkoutToProgramState,
   createProgramState,
+  logDraftSetState,
   removeDraftSetState,
   removeExerciseFromWorkoutState,
   removeWorkoutFromProgramState,
@@ -13,15 +14,14 @@ import {
   updateWorkoutDefaultsState
 } from '../state.js';
 
-test('createProgramState adds a program with a default workout and selects it', () => {
+test('createProgramState adds a program without default workouts', () => {
   let id = 0;
   const createId = () => `id-${++id}`;
   const result = createProgramState([], 'Push Pull Legs', createId);
   assert.equal(result.program.name, 'Push Pull Legs');
-  assert.equal(result.program.workouts.length, 1);
-  assert.equal(result.program.workouts[0].name, 'Workout A');
+  assert.equal(result.program.workouts.length, 0);
   assert.equal(result.selectedProgramId, result.program.id);
-  assert.equal(result.selectedWorkoutId, result.program.workouts[0].id);
+  assert.equal(result.selectedWorkoutId, '');
 });
 
 test('addWorkoutToProgramState adds named workouts', () => {
@@ -49,7 +49,7 @@ test('removeExerciseFromWorkoutState removes by id', () => {
   assert.equal(next[0].workouts[0].exercises.length, 0);
 });
 
-test('updateWorkoutDefaultsState updates reps and weight', () => {
+test('updateWorkoutDefaultsState updates sets', () => {
   const programs = [{
     id: 'p1',
     name: 'Program',
@@ -59,10 +59,8 @@ test('updateWorkoutDefaultsState updates reps and weight', () => {
       exercises: [{ id: 'e1', name: 'Press', defaultReps: '', defaultWeight: '' }]
     }]
   }];
-  const next = updateWorkoutDefaultsState(programs, 'p1', 'w1', 'e1', 'defaultReps', '8');
-  const final = updateWorkoutDefaultsState(next, 'p1', 'w1', 'e1', 'defaultWeight', '60');
-  assert.equal(final[0].workouts[0].exercises[0].defaultReps, 8);
-  assert.equal(final[0].workouts[0].exercises[0].defaultWeight, 60);
+  const withSets = updateWorkoutDefaultsState(programs, 'p1', 'w1', 'e1', 'defaultSets', '4');
+  assert.equal(withSets[0].workouts[0].exercises[0].defaultSets, 4);
 });
 
 test('removeWorkoutFromProgramState removes workout', () => {
@@ -83,7 +81,7 @@ test('startSessionState hydrates from last session for same workout', () => {
   const program = {
     id: 'p1',
     name: 'Program',
-    workouts: [{ id: 'w1', name: 'Bench Day', exercises: [{ id: 'e1', name: 'Bench', defaultReps: 5, defaultWeight: 100 }] }]
+    workouts: [{ id: 'w1', name: 'Bench Day', exercises: [{ id: 'e1', name: 'Bench', defaultSets: 3, defaultReps: 5, defaultWeight: 100 }] }]
   };
   const sessions = [
     {
@@ -95,19 +93,40 @@ test('startSessionState hydrates from last session for same workout', () => {
   const draft = startSessionState(program, 'w1', sessions, () => 's1', '2026-02-13');
   assert.equal(draft.workoutId, 'w1');
   assert.equal(draft.workoutName, 'Bench Day');
-  assert.equal(draft.entries[0].sets[0].reps, 6);
-  assert.equal(draft.entries[0].sets[0].weight, 105);
+  assert.equal(draft.entries[0].sets[0].reps, '');
+  assert.equal(draft.entries[0].sets[0].weight, '');
+  assert.equal(draft.entries[0].sets[0].targetReps, 6);
+  assert.equal(draft.entries[0].sets[0].targetWeight, 105);
+  assert.equal(draft.entries[0].sets[0].logged, false);
+});
+
+test('startSessionState builds default number of sets when no prior session exists', () => {
+  const program = {
+    id: 'p1',
+    name: 'Program',
+    workouts: [{ id: 'w1', name: 'Push', exercises: [{ id: 'e1', name: 'Press', defaultSets: 4, defaultReps: 8, defaultWeight: 50 }] }]
+  };
+  const draft = startSessionState(program, 'w1', [], () => 's1', '2026-02-13');
+  assert.equal(draft.entries[0].sets.length, 4);
+  assert.equal(draft.entries[0].sets[0].reps, '');
+  assert.equal(draft.entries[0].sets[0].weight, '');
+  assert.equal(draft.entries[0].sets[0].targetReps, '');
+  assert.equal(draft.entries[0].sets[0].targetWeight, '');
 });
 
 test('draft set mutations adjust entries', () => {
   const draft = {
     id: 's1',
-    entries: [{ exerciseId: 'e1', name: 'Bench', sets: [{ reps: 5, weight: 100 }] }]
+    entries: [{ exerciseId: 'e1', name: 'Bench', sets: [{ reps: '', weight: '', targetReps: 5, targetWeight: 100, logged: false }] }]
   };
   const added = addDraftSetState(draft, 'e1');
   assert.equal(added.entries[0].sets.length, 2);
   const updated = updateDraftSetState(added, 'e1', 1, 'reps', '8');
   assert.equal(updated.entries[0].sets[1].reps, 8);
-  const removed = removeDraftSetState(updated, 'e1', 0);
+  const logged = logDraftSetState(updated, 'e1', 0);
+  assert.equal(logged.entries[0].sets[0].reps, 5);
+  assert.equal(logged.entries[0].sets[0].weight, 100);
+  assert.equal(logged.entries[0].sets[0].logged, true);
+  const removed = removeDraftSetState(logged, 'e1', 0);
   assert.equal(removed.entries[0].sets.length, 1);
 });

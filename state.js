@@ -4,7 +4,7 @@ export const clampNumber = value => {
   return Number.isNaN(parsed) ? '' : parsed;
 };
 
-const makeWorkout = (createId, name = 'Workout A') => ({
+const makeWorkout = (createId, name) => ({
   id: createId(),
   name,
   exercises: []
@@ -21,18 +21,17 @@ export const createProgramState = (programs, name, createId) => {
     };
   }
 
-  const firstWorkout = makeWorkout(createId);
   const program = {
     id: createId(),
     name: trimmed,
-    workouts: [firstWorkout],
+    workouts: [],
     createdAt: Date.now()
   };
 
   return {
     programs: [program, ...programs],
     selectedProgramId: program.id,
-    selectedWorkoutId: firstWorkout.id,
+    selectedWorkoutId: '',
     program
   };
 };
@@ -76,8 +75,9 @@ export const addExerciseToWorkoutState = (programs, programId, workoutId, exerci
             {
               id: exercise.id,
               name: exercise.name,
-              defaultReps: exercise.defaultReps || '',
-              defaultWeight: exercise.defaultWeight || ''
+              defaultSets: exercise.defaultSets || 3,
+              defaultReps: '',
+              defaultWeight: ''
             }
           ]
         };
@@ -133,12 +133,25 @@ export const startSessionState = (program, workoutId, sessions, createId, dateIS
 
   const entries = workout.exercises.map(exercise => {
     const last = lastEntryForExercise(sessions, exercise.id, workout.id);
+    const setCount = Math.max(1, Number(exercise.defaultSets) || 1);
     return {
       exerciseId: exercise.id,
       name: exercise.name,
       sets: last?.sets?.length
-        ? last.sets.map(set => ({ reps: set.reps, weight: set.weight }))
-        : [{ reps: exercise.defaultReps || '', weight: exercise.defaultWeight || '' }]
+        ? last.sets.map(set => ({
+            reps: '',
+            weight: '',
+            targetReps: set.reps ?? '',
+            targetWeight: set.weight ?? '',
+            logged: false
+          }))
+        : Array.from({ length: setCount }, () => ({
+            reps: '',
+            weight: '',
+            targetReps: '',
+            targetWeight: '',
+            logged: false
+          }))
     };
   });
 
@@ -169,7 +182,7 @@ export const addDraftSetState = (draftSession, exerciseId) => {
     if (entry.exerciseId !== exerciseId) return entry;
     return {
       ...entry,
-      sets: [...entry.sets, { reps: '', weight: '' }]
+      sets: [...entry.sets, { reps: '', weight: '', targetReps: '', targetWeight: '', logged: false }]
     };
   });
   return { ...draftSession, entries: updatedEntries };
@@ -182,6 +195,20 @@ export const removeDraftSetState = (draftSession, exerciseId, setIndex) => {
       ...entry,
       sets: entry.sets.filter((_, index) => index !== setIndex)
     };
+  });
+  return { ...draftSession, entries: updatedEntries };
+};
+
+export const logDraftSetState = (draftSession, exerciseId, setIndex) => {
+  const updatedEntries = draftSession.entries.map(entry => {
+    if (entry.exerciseId !== exerciseId) return entry;
+    const sets = entry.sets.map((set, index) => {
+      if (index !== setIndex) return set;
+      const reps = set.reps === '' ? set.targetReps : set.reps;
+      const weight = set.weight === '' ? set.targetWeight : set.weight;
+      return { ...set, reps, weight, logged: true };
+    });
+    return { ...entry, sets };
   });
   return { ...draftSession, entries: updatedEntries };
 };
