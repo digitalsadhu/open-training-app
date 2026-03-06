@@ -9,18 +9,22 @@ const makeFetch = routes => async url => {
   }
   const payload = typeof handler === 'function' ? handler() : handler;
   return {
+    ok: true,
+    status: 200,
     json: async () => payload
   };
 };
 
 test('normalizeExercises dedupes and sorts', () => {
   const data = normalizeExercises([
-    { id: 1, name: 'Bench Press', description: 'a' },
-    { id: 2, name: 'bench press', description: 'b' },
-    { id: 3, name: '  Deadlift ', description: '' }
+    { id: 1, name: 'Bench Press', description: 'a', source: 'a' },
+    { id: 2, name: 'bench-press', description: 'better', source: 'b' },
+    { id: 3, name: '  Deadlift ', description: '', source: 'a' }
   ]);
   assert.equal(data.length, 2);
   assert.equal(data[0].name, 'Bench Press');
+  assert.equal(data[0].description, 'better');
+  assert.deepEqual(data[0].sources.sort(), ['a', 'b']);
   assert.equal(data[1].name, 'Deadlift');
 });
 
@@ -32,13 +36,31 @@ test('getEnglishLanguageId falls back when English missing', async () => {
   assert.equal(id, 2);
 });
 
-test('fetchExercises loads and normalizes', async () => {
+test('fetchExercises merges wger and free sources and dedupes', async () => {
   const fetchImpl = makeFetch({
     'https://wger.de/api/v2/exerciseinfo/?language=2&status=2&limit=100': {
       results: [
-        { id: 10, name: 'Overhead Press', description: '' },
-        { id: 11, name: 'overhead press', description: '' }
+        { id: 10, name: 'Overhead Press', description: 'barbell press' }
       ],
+      next: null
+    },
+    'https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/dist/exercises.json': [
+      { id: 'x-1', name: 'Overhead Press', instructions: ['stand tall'] },
+      { id: 'x-2', name: 'Romanian Deadlift', instructions: ['hinge at hips'] }
+    ]
+  });
+
+  const data = await fetchExercises(2, fetchImpl, 250);
+  assert.equal(data.length, 2);
+  assert.equal(data[0].name, 'Overhead Press');
+  assert.deepEqual(data[0].sources.sort(), ['free-exercise-db', 'wger']);
+  assert.equal(data[1].name, 'Romanian Deadlift');
+});
+
+test('fetchExercises works when free source is unavailable', async () => {
+  const fetchImpl = makeFetch({
+    'https://wger.de/api/v2/exerciseinfo/?language=2&status=2&limit=100': {
+      results: [{ id: 10, name: 'Overhead Press', description: '' }],
       next: null
     }
   });
@@ -61,7 +83,6 @@ test('live api returns exercises', async t => {
     });
     assert.ok(firstNamed, 'Expected at least one exercise to have a name (or translation name)');
   } catch (error) {
-    console.log(error)
-    // t.skip(`Network unavailable for live API test: ${error?.message || String(error)}`);
+    t.skip(`Network unavailable for live API test: ${error?.message || String(error)}`);
   }
 });

@@ -627,7 +627,11 @@ class TrainingApp extends LitElement {
                             <div class="list-item">
                               <div>
                                 <strong>${item.name}</strong>
-                                <div class="muted">Open exercise library</div>
+                                <div class="muted">
+                                  Source: ${Array.isArray(item.sources) && item.sources.length > 0
+                                    ? item.sources.join(', ')
+                                    : item.source || 'unknown'}
+                                </div>
                               </div>
                               <wa-button
                                 @click=${() =>
