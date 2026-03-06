@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Training App">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111827" />
+      <stop offset="1" stop-color="#0f766e" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#g)" />
+  <g fill="#e5e7eb">
+    <rect x="88" y="220" width="76" height="72" rx="10" />
+    <rect x="348" y="220" width="76" height="72" rx="10" />
+    <rect x="164" y="244" width="184" height="24" rx="12" />
+  </g>
+  <g fill="#d1fae5">
+    <rect x="116" y="200" width="20" height="112" rx="10" />
+    <rect x="376" y="200" width="20" height="112" rx="10" />
+  </g>
+</svg>

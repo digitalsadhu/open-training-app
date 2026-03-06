@@ -1,0 +1,11 @@
+{
+  "name": "training-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@awesome.me/webawesome": "^3.2.1"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Training App",
+  "short_name": "Training",
+  "description": "Plan workouts, track sets, and see progress over time.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
