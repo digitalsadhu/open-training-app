@@ -8,7 +8,19 @@ import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/comp
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/tab-group/tab-group.js';
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/tab/tab.js';
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/tab-panel/tab-panel.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/dialog/dialog.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/icon/icon.js';
 import { fetchExercises, getEnglishLanguageId } from './data.js';
+import {
+  SyncRegistry,
+  alignSelections,
+  cloneState,
+  createDefaultSyncState,
+  createGoogleSheetsAdapter,
+  finalizeLocalStateForSync,
+  migrateStateForSync,
+  runSyncForTargets
+} from './sync/index.js';
 import {
   addDraftSetState,
   addExerciseToWorkoutState,
@@ -26,6 +38,17 @@ import {
 
 const STORAGE_KEY = 'training-app:v1';
 const EXERCISE_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
+const DEFAULT_SYNC_SHEET_TAB = '__training_sync';
+const DEFAULT_SYNC_DOC_ID = 'default';
+
+const resolveGoogleClientId = () => {
+  const fromGlobal = String(globalThis.__TRAINING_APP_GOOGLE_CLIENT_ID || '').trim();
+  if (fromGlobal) return fromGlobal;
+  const fromMeta = String(
+    globalThis.document?.querySelector?.('meta[name="training-app-google-client-id"]')?.content || ''
+  ).trim();
+  return fromMeta;
+};
 
 const defaultState = {
   programs: [],
@@ -33,6 +56,7 @@ const defaultState = {
   selectedProgramId: '',
   selectedWorkoutId: '',
   draftSession: null,
+  sync: createDefaultSyncState(),
   exerciseCache: {
     updatedAt: 0,
     exercises: []
@@ -70,20 +94,25 @@ const normalizePrograms = programs =>
 const loadState = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...defaultState };
+    if (!raw) return migrateStateForSync({ ...defaultState });
     const parsed = JSON.parse(raw);
-    return {
+    const merged = {
       ...defaultState,
       ...parsed,
       programs: normalizePrograms(parsed.programs || []),
+      sync: {
+        ...createDefaultSyncState(),
+        ...(parsed.sync || {})
+      },
       exerciseCache: {
         ...defaultState.exerciseCache,
         ...(parsed.exerciseCache || {})
       }
     };
+    return migrateStateForSync(merged);
   } catch (error) {
     console.warn('Failed to load state', error);
-    return { ...defaultState };
+    return migrateStateForSync({ ...defaultState });
   }
 };
 
@@ -177,7 +206,18 @@ class TrainingApp extends LitElement {
     selectedExercise: { state: true },
     exerciseCacheUpdatedAt: { state: true },
     exerciseLoadError: { state: true },
-    exerciseFetchStatus: { state: true }
+    exerciseFetchStatus: { state: true },
+    historyExerciseId: { state: true },
+    historyExerciseName: { state: true },
+    saveValidationError: { state: true },
+    syncState: { state: true },
+    syncProviderId: { state: true },
+    syncNameInput: { state: true },
+    syncFeedback: { state: true },
+    googleConnectDialogOpen: { state: true },
+    googleSpreadsheetOptions: { state: true },
+    googleSpreadsheetChoice: { state: true },
+    googleSpreadsheetsLoading: { state: true }
   };
 
   static styles = css`
@@ -193,6 +233,10 @@ class TrainingApp extends LitElement {
   constructor() {
     super();
     const saved = loadState();
+    this.syncRegistry = new SyncRegistry();
+    this.syncRegistry.register(createGoogleSheetsAdapter());
+    this.autoSyncTimer = 0;
+    this.lastPersistedState = cloneState(saved);
     this.programs = saved.programs;
     this.sessions = saved.sessions;
     this.selectedProgramId = saved.selectedProgramId || this.programs[0]?.id || '';
@@ -213,6 +257,21 @@ class TrainingApp extends LitElement {
       lastCount: 0,
       lastError: ''
     };
+    this.syncState = saved.sync;
+    this.syncProviderId = 'google-sheets';
+    const knownGoogleTarget = (saved.sync?.targets || []).find(
+      target => target.adapterId === 'google-sheets' && target.config?.clientId
+    );
+    this.googleClientId = resolveGoogleClientId() || String(knownGoogleTarget?.config?.clientId || '');
+    this.syncNameInput = 'Google Sheets';
+    this.syncFeedback = '';
+    this.googleConnectDialogOpen = false;
+    this.googleSpreadsheetOptions = [];
+    this.googleSpreadsheetChoice = '';
+    this.googleSpreadsheetsLoading = false;
+    this.historyExerciseId = '';
+    this.historyExerciseName = '';
+    this.saveValidationError = '';
   }
 
   connectedCallback() {
@@ -305,33 +364,49 @@ class TrainingApp extends LitElement {
     }
   }
 
-  persist() {
-    saveState({
+  buildStateSnapshot() {
+    return {
       programs: this.programs,
       sessions: this.sessions,
       selectedProgramId: this.selectedProgramId,
       selectedWorkoutId: this.selectedWorkoutId,
       draftSession: this.draftSession,
+      sync: this.syncState,
       exerciseCache: {
         updatedAt: this.exerciseCacheUpdatedAt,
         exercises: this.exercises
       }
-    });
+    };
+  }
+
+  applyStateSnapshot(state) {
+    const aligned = alignSelections(migrateStateForSync(state));
+    this.programs = aligned.programs;
+    this.sessions = aligned.sessions;
+    this.selectedProgramId = aligned.selectedProgramId;
+    this.selectedWorkoutId = aligned.selectedWorkoutId;
+    this.draftSession = aligned.draftSession;
+    this.syncState = aligned.sync;
+    this.exercises = aligned.exerciseCache?.exercises || [];
+    this.exerciseCacheUpdatedAt = aligned.exerciseCache?.updatedAt || 0;
+  }
+
+  persist({ triggerSync = true } = {}) {
+    const snapshot = this.buildStateSnapshot();
+    const previous = this.lastPersistedState || migrateStateForSync({ ...defaultState });
+    const finalized = alignSelections(finalizeLocalStateForSync(snapshot, previous, Date.now()));
+    this.applyStateSnapshot(finalized);
+    saveState(finalized);
+    this.lastPersistedState = cloneState(finalized);
+    if (triggerSync && this.syncState?.autoSyncEnabled) {
+      this.scheduleAutoSync();
+    }
   }
 
   updateExerciseCache(timestamp, exercises) {
-    saveState({
-      programs: this.programs,
-      sessions: this.sessions,
-      selectedProgramId: this.selectedProgramId,
-      selectedWorkoutId: this.selectedWorkoutId,
-      draftSession: this.draftSession,
-      exerciseCache: {
-        updatedAt: timestamp,
-        exercises
-      }
-    });
     this.exerciseCacheUpdatedAt = timestamp;
+    this.exercises = exercises;
+    this.persist({ triggerSync: false });
   }
 
   async loadExerciseLibrary(force = false) {
@@ -379,6 +454,235 @@ class TrainingApp extends LitElement {
     } finally {
       this.loadingExercises = false;
     }
+  }
+
+  scheduleAutoSync() {
+    if (this.autoSyncTimer) {
+      clearTimeout(this.autoSyncTimer);
+    }
+    if (this.syncState?.isSyncing) return;
+    this.autoSyncTimer = window.setTimeout(() => {
+      this.autoSyncTimer = 0;
+      this.syncNow();
+    }, 5000);
+  }
+
+  async syncNow(targetIds = []) {
+    if (this.syncState?.isSyncing) return;
+    this.syncState = { ...this.syncState, isSyncing: true };
+    this.persist({ triggerSync: false });
+
+    const run = await runSyncForTargets({
+      state: this.buildStateSnapshot(),
+      registry: this.syncRegistry,
+      targetIds,
+      now: Date.now()
+    });
+
+    this.applyStateSnapshot(run.state);
+    saveState(run.state);
+    this.lastPersistedState = cloneState(run.state);
+
+    const failures = run.results.filter(result => !result.ok);
+    if (failures.length === 0) {
+      this.syncFeedback = `Synced ${run.results.length} target${run.results.length === 1 ? '' : 's'}.`;
+    } else {
+      this.syncFeedback = failures.map(item => item.error).join(' | ');
+    }
+  }
+
+  async addSyncTarget() {
+    if (this.syncProviderId === 'google-sheets') {
+      await this.openGoogleConnectDialog();
+      return;
+    }
+
+    const adapter = this.syncRegistry.get(this.syncProviderId);
+    if (!adapter) {
+      this.syncFeedback = `Missing adapter: ${this.syncProviderId}`;
+      return;
+    }
+
+    const name = this.syncNameInput.trim() || 'Sync target';
+    const baseConfig = {};
+
+    try {
+      const config = adapter.validateConfig(baseConfig);
+      const connectedConfig = await adapter.connect(config);
+      const target = {
+        id: createId(),
+        adapterId: adapter.id,
+        name,
+        status: 'idle',
+        config: connectedConfig,
+        lastSyncedAt: 0,
+        lastError: '',
+        lastRevision: 0,
+        connected: true
+      };
+      this.syncState = {
+        ...this.syncState,
+        targets: [...(this.syncState.targets || []), target]
+      };
+      this.syncFeedback = `${name} connected.`;
+      this.persist({ triggerSync: false });
+    } catch (error) {
+      this.syncFeedback = error?.message || String(error);
+    }
+  }
+
+  async createAndConnectGoogleSheet() {
+    const adapter = this.syncRegistry.get(this.syncProviderId);
+    if (!adapter || adapter.id !== 'google-sheets') {
+      this.syncFeedback = 'Create sheet is only supported for Google Sheets targets.';
+      return;
+    }
+
+    if (!this.googleClientId) {
+      this.syncFeedback = 'Google sync is not configured. Set window.__TRAINING_APP_GOOGLE_CLIENT_ID.';
+      return;
+    }
+
+    const stamp = new Date().toISOString().slice(0, 10);
+    const baseConfig = {
+      clientId: this.googleClientId,
+      spreadsheetTitle: `Training App Data (${stamp})`,
+      sheetName: DEFAULT_SYNC_SHEET_TAB,
+      docId: DEFAULT_SYNC_DOC_ID
+    };
+
+    try {
+      const createdConfig = await adapter.createTargetConfig(baseConfig);
+      const config = adapter.validateConfig(createdConfig);
+      const connectedConfig = await adapter.connect(config);
+      const target = this.createConnectedTarget(adapter.id, this.syncNameInput.trim() || 'Google Sheets', connectedConfig);
+      this.syncFeedback = `${target.name} connected with a newly created sheet.`;
+      this.persist({ triggerSync: false });
+      this.closeGoogleConnectDialog();
+    } catch (error) {
+      this.syncFeedback = error?.message || String(error);
+    }
+  }
+
+  createConnectedTarget(adapterId, name, config) {
+    const target = {
+      id: createId(),
+      adapterId,
+      name: name || 'Sync target',
+      status: 'idle',
+      config,
+      lastSyncedAt: 0,
+      lastError: '',
+      lastRevision: 0,
+      connected: true
+    };
+    this.syncState = {
+      ...this.syncState,
+      targets: [...(this.syncState.targets || []), target]
+    };
+    return target;
+  }
+
+  async connectExistingGoogleSheetAndRestore(spreadsheetId) {
+    const adapter = this.syncRegistry.get(this.syncProviderId);
+    if (!adapter || adapter.id !== 'google-sheets') {
+      this.syncFeedback = 'Restore from sheet is only supported for Google Sheets targets.';
+      return;
+    }
+    if (!this.googleClientId) {
+      this.syncFeedback = 'Google sync is not configured. Set window.__TRAINING_APP_GOOGLE_CLIENT_ID.';
+      return;
+    }
+
+    const safeSpreadsheetId = String(spreadsheetId || '').trim();
+    if (!safeSpreadsheetId) {
+      this.syncFeedback = 'Please choose a spreadsheet to restore from.';
+      return;
+    }
+
+    try {
+      const config = adapter.validateConfig({
+        clientId: this.googleClientId,
+        spreadsheetId: safeSpreadsheetId,
+        sheetName: DEFAULT_SYNC_SHEET_TAB,
+        docId: DEFAULT_SYNC_DOC_ID
+      });
+      await adapter.assertBackupExists(config);
+      const connectedConfig = await adapter.connect(config);
+      const target = this.createConnectedTarget(
+        adapter.id,
+        this.syncNameInput.trim() || 'Google Sheets (Restore)',
+        connectedConfig
+      );
+      this.persist({ triggerSync: false });
+      await this.syncNow([target.id]);
+      this.syncFeedback = `Restored data from spreadsheet ${safeSpreadsheetId}.`;
+      this.closeGoogleConnectDialog();
+    } catch (error) {
+      this.syncFeedback = error?.message || String(error);
+    }
+  }
+
+  async openGoogleConnectDialog() {
+    if (!this.googleClientId) {
+      this.syncFeedback = 'Google sync is not configured. Set window.__TRAINING_APP_GOOGLE_CLIENT_ID.';
+      return;
+    }
+    this.googleConnectDialogOpen = true;
+    await this.loadGoogleSpreadsheetOptions();
+  }
+
+  closeGoogleConnectDialog() {
+    this.googleConnectDialogOpen = false;
+  }
+
+  async loadGoogleSpreadsheetOptions() {
+    const adapter = this.syncRegistry.get(this.syncProviderId);
+    if (!adapter || adapter.id !== 'google-sheets') return;
+    this.googleSpreadsheetsLoading = true;
+    try {
+      const sheets = await adapter.listSpreadsheets({ clientId: this.googleClientId }, 30);
+      this.googleSpreadsheetOptions = sheets;
+      this.googleSpreadsheetChoice = sheets[0]?.id || '';
+    } catch (error) {
+      this.syncFeedback = error?.message || String(error);
+    } finally {
+      this.googleSpreadsheetsLoading = false;
+    }
+  }
+
+  async disconnectSyncTarget(targetId) {
+    const target = (this.syncState.targets || []).find(item => item.id === targetId);
+    if (!target) return;
+    const adapter = this.syncRegistry.get(target.adapterId);
+    if (adapter?.disconnect) {
+      try {
+        await adapter.disconnect(target.id);
+      } catch (error) {
+        this.syncFeedback = error?.message || String(error);
+      }
+    }
+
+    this.syncState = {
+      ...this.syncState,
+      targets: (this.syncState.targets || []).map(item =>
+        item.id === targetId ? { ...item, connected: false, status: 'idle' } : item
+      )
+    };
+    this.persist({ triggerSync: false });
+  }
+
+  removeSyncTarget(targetId) {
+    this.syncState = {
+      ...this.syncState,
+      targets: (this.syncState.targets || []).filter(item => item.id !== targetId)
+    };
+    this.persist({ triggerSync: false });
+  }
+
+  setSyncAutoEnabled(value) {
+    this.syncState = { ...this.syncState, autoSyncEnabled: value };
+    this.persist({ triggerSync: false });
   }
 
 
@@ -444,27 +748,53 @@ class TrainingApp extends LitElement {
 
   startSession(programId, workoutId) {
     const program = this.programs.find(item => item.id === programId);
-    this.draftSession = startSessionState(program, workoutId, this.sessions, createId, todayISO());
+    const nextDraft = startSessionState(program, workoutId, this.sessions, createId, todayISO());
+    this.draftSession = nextDraft
+      ? {
+          ...nextDraft,
+          entries: nextDraft.entries.map(entry => ({
+            ...entry,
+            skipped: Boolean(entry.skipped)
+          }))
+        }
+      : null;
+    this.saveValidationError = '';
     this.persist();
   }
 
   updateDraftSet(exerciseId, setIndex, field, value) {
     this.draftSession = updateDraftSetState(this.draftSession, exerciseId, setIndex, field, value);
+    this.saveValidationError = '';
     this.persist();
   }
 
   addDraftSet(exerciseId) {
     this.draftSession = addDraftSetState(this.draftSession, exerciseId);
+    this.saveValidationError = '';
     this.persist();
   }
 
   removeDraftSet(exerciseId, setIndex) {
     this.draftSession = removeDraftSetState(this.draftSession, exerciseId, setIndex);
+    this.saveValidationError = '';
     this.persist();
   }
 
   logDraftSet(exerciseId, setIndex) {
     this.draftSession = logDraftSetState(this.draftSession, exerciseId, setIndex);
+    this.saveValidationError = '';
+    this.persist();
+  }
+
+  toggleSkipDraftExercise(exerciseId) {
+    if (!this.draftSession) return;
+    this.draftSession = {
+      ...this.draftSession,
+      entries: this.draftSession.entries.map(entry =>
+        entry.exerciseId === exerciseId ? { ...entry, skipped: !entry.skipped } : entry
+      )
+    };
+    this.saveValidationError = '';
     this.persist();
   }
 
@@ -495,16 +825,28 @@ class TrainingApp extends LitElement {
 
   saveSession() {
     if (!this.draftSession) return;
-    const finalizedEntries = this.draftSession.entries.map(entry => ({
-      ...entry,
-      sets: entry.sets
-        .filter(set => set.logged)
-        .map(set => ({ reps: set.reps, weight: set.weight }))
-    }));
+    const hasExerciseWithoutLoggedSet = this.draftSession.entries.some(entry => {
+      if (entry.skipped) return false;
+      return !entry.sets.some(set => set.logged);
+    });
+    if (hasExerciseWithoutLoggedSet) {
+      this.saveValidationError = 'Please log at least one set for each exercise (or skip it) before saving.';
+      return;
+    }
+
+    const finalizedEntries = this.draftSession.entries
+      .filter(entry => !entry.skipped)
+      .map(entry => ({
+        ...entry,
+        sets: entry.sets
+          .filter(set => set.logged)
+          .map(set => ({ reps: set.reps, weight: set.weight }))
+      }));
     this.sessions = [
       { ...this.draftSession, entries: finalizedEntries, savedAt: Date.now() },
       ...this.sessions
     ];
+    this.saveValidationError = '';
     this.draftSession = null;
     this.persist();
   }
@@ -516,6 +858,40 @@ class TrainingApp extends LitElement {
   updateDraftNotes(value) {
     this.draftSession = { ...this.draftSession, notes: value };
     this.persist();
+  }
+
+  getExerciseHistory(exerciseId) {
+    return this.sessions
+      .map(session => {
+        const entry = session.entries?.find(item => item.exerciseId === exerciseId);
+        if (!entry || !Array.isArray(entry.sets) || entry.sets.length === 0) return null;
+        return {
+          sessionId: session.id,
+          date: session.date,
+          savedAt: session.savedAt || 0,
+          workoutName: session.workoutName || 'Workout',
+          sets: entry.sets
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  }
+
+  openExerciseHistory(exerciseId, exerciseName) {
+    this.historyExerciseId = exerciseId;
+    this.historyExerciseName = exerciseName;
+    const dialog = this.renderRoot.querySelector('#exercise-history-dialog');
+    dialog?.show();
+  }
+
+  closeExerciseHistory() {
+    const dialog = this.renderRoot.querySelector('#exercise-history-dialog');
+    if (!dialog) return;
+    if (typeof dialog.hide === 'function') {
+      dialog.hide();
+    }
+    dialog.open = false;
+    dialog.removeAttribute('open');
   }
 
   updateProgramNotes(programId, value) {
@@ -546,12 +922,30 @@ class TrainingApp extends LitElement {
     const program = this.programs.find(item => item.id === this.selectedProgramId);
     const selectedWorkout = program?.workouts?.find(item => item.id === this.selectedWorkoutId) || program?.workouts?.[0] || null;
     const search = this.exerciseSearch.trim();
+    const lastTrainedByExerciseId = new Map();
+
+    this.sessions.forEach(session => {
+      const sessionTime = session.savedAt || Date.parse(session.date) || 0;
+      (session.entries || []).forEach(entry => {
+        const key = String(entry.exerciseId || '');
+        if (!key) return;
+        const existing = lastTrainedByExerciseId.get(key) || 0;
+        if (sessionTime > existing) {
+          lastTrainedByExerciseId.set(key, sessionTime);
+        }
+      });
+    });
+
     const filteredExercises = this.exercises
       .map(item => ({ ...item, name: item.name || item.exercise?.name || item.translations?.[0]?.name || '' }))
       .filter(item => item.name)
       .map(item => ({ ...item, score: scoreExerciseMatch(item.name, search) }))
       .filter(item => item.score > 0)
       .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
+      .map(item => ({
+        ...item,
+        lastTrainedAt: lastTrainedByExerciseId.get(String(item.id)) || 0
+      }))
       .slice(0, 30);
 
     return html`
@@ -718,6 +1112,9 @@ class TrainingApp extends LitElement {
                                     ? item.sources.join(', ')
                                     : item.source || 'unknown'}
                                 </div>
+                                ${item.lastTrainedAt
+                                  ? html`<div class="last-trained">Last trained: ${formatDate(item.lastTrainedAt)}</div>`
+                                  : html``}
                               </div>
                               <wa-button
                                 @click=${() =>
@@ -772,17 +1169,20 @@ class TrainingApp extends LitElement {
     const program = this.programs.find(item => item.id === this.selectedProgramId);
     const workouts = program?.workouts || [];
     const workout = workouts.find(item => item.id === this.selectedWorkoutId) || workouts[0] || null;
+    const historyItems = this.historyExerciseId ? this.getExerciseHistory(this.historyExerciseId) : [];
     return html`
       <section class="section">
         <h2>Train</h2>
         ${program && workout
           ? html`
-              <div class="stack">
+                <div class="stack">
                   <wa-select
                     label="Workout"
+                    placeholder="Select workout..."
                     .value=${workout.id}
                     @change=${event => this.selectWorkout(event.currentTarget.value)}
                   >
+                    <wa-option value="" disabled>Select workout...</wa-option>
                     ${workouts.map(item => html`<wa-option value=${item.id}>${item.name}</wa-option>`)}
                   </wa-select>
                 <div class="inline">
@@ -797,8 +1197,23 @@ class TrainingApp extends LitElement {
                       <div class="stack">
                         ${this.draftSession.entries.map(entry =>
                           html`
-                            <div class="exercise-card">
-                              <h3>${entry.name}</h3>
+                            <div class="exercise-card ${entry.skipped ? 'is-skipped' : ''}">
+                              <div class="exercise-card-header">
+                                <h3>${entry.name}</h3>
+                                <div class="inline">
+                                  <wa-button
+                                    size="small"
+                                    @click=${() => this.openExerciseHistory(entry.exerciseId, entry.name)}
+                                    aria-label="Show exercise history"
+                                  >
+                                    <wa-icon name="clock-rotate-left" label="History"></wa-icon>
+                                  </wa-button>
+                                  <wa-button
+                                    size="small"
+                                    @click=${() => this.toggleSkipDraftExercise(entry.exerciseId)}
+                                  >${entry.skipped ? 'Unskip' : 'Skip'}</wa-button>
+                                </div>
+                              </div>
                               ${entry.sets.map(
                                 (set, index) => html`
                                   <div class="set-row">
@@ -807,6 +1222,7 @@ class TrainingApp extends LitElement {
                                       label="Reps"
                                       .value=${set.reps}
                                       placeholder=${set.targetReps}
+                                      ?disabled=${entry.skipped}
                                       @input=${event => {
                                         const nextValue = this.resolveSpinnerValue(
                                           set,
@@ -823,6 +1239,7 @@ class TrainingApp extends LitElement {
                                       label="Weight"
                                       .value=${set.weight}
                                       placeholder=${set.targetWeight}
+                                      ?disabled=${entry.skipped}
                                       @input=${event => {
                                         const nextValue = this.resolveSpinnerValue(
                                           set,
@@ -836,20 +1253,24 @@ class TrainingApp extends LitElement {
                                     ></wa-input>
                                     <wa-button
                                       variant="primary"
-                                      ?disabled=${set.logged}
+                                      ?disabled=${set.logged || entry.skipped}
                                       @click=${() => this.logDraftSet(entry.exerciseId, index)}
                                     >${set.logged ? 'Logged' : 'Log'}</wa-button>
                                     <wa-button
                                       variant="danger"
-                                      ?disabled=${entry.sets.length === 1}
+                                      ?disabled=${entry.sets.length === 1 || entry.skipped}
                                       @click=${() => this.removeDraftSet(entry.exerciseId, index)}
                                     >-</wa-button>
                                   </div>
                                 `
                               )}
                               <div class="inline">
-                                <wa-button @click=${() => this.addDraftSet(entry.exerciseId)}>Add set</wa-button>
+                                <wa-button
+                                  ?disabled=${entry.skipped}
+                                  @click=${() => this.addDraftSet(entry.exerciseId)}
+                                >Add set</wa-button>
                               </div>
+                              ${entry.skipped ? html`<div class="muted">Skipped for this session.</div>` : html``}
                             </div>
                           `
                         )}
@@ -862,10 +1283,14 @@ class TrainingApp extends LitElement {
                         <div class="inline">
                           <wa-button variant="primary" @click=${() => this.saveSession()}>Save session</wa-button>
                           <wa-button variant="danger" @click=${() => {
+                            this.saveValidationError = '';
                             this.draftSession = null;
                             this.persist();
                           }}>Discard</wa-button>
                         </div>
+                        ${this.saveValidationError
+                          ? html`<wa-callout variant="warning">${this.saveValidationError}</wa-callout>`
+                          : html``}
                       </div>
                     `
                   : html`<div class="muted">Start a session to log sets and weights.</div>`}
@@ -873,6 +1298,41 @@ class TrainingApp extends LitElement {
             `
           : html`<div class="muted">Create a program and workout first to start training.</div>`}
       </section>
+
+      <wa-dialog
+        id="exercise-history-dialog"
+        label=${this.historyExerciseName ? `${this.historyExerciseName} History` : 'Exercise History'}
+        @wa-after-hide=${() => {
+          this.historyExerciseId = '';
+          this.historyExerciseName = '';
+        }}
+      >
+        ${historyItems.length === 0
+          ? html`<div class="muted">No logged sets yet for this exercise.</div>`
+          : html`
+              <div class="stack">
+                ${historyItems.map(
+                  item => html`
+                    <div class="list-item history-item">
+                      <div>
+                        <strong>${formatDate(item.date)} · ${item.workoutName}</strong>
+                        <div class="muted">
+                          ${item.sets
+                            .map(set => `${formatNumber(set.reps)} reps @ ${formatNumber(set.weight)} kg`)
+                            .join(' · ')}
+                        </div>
+                      </div>
+                    </div>
+                  `
+                )}
+              </div>
+            `}
+        <wa-button
+          slot="footer"
+          variant="primary"
+          @click=${() => this.closeExerciseHistory()}
+        >Close</wa-button>
+      </wa-dialog>
     `;
   }
 
@@ -960,6 +1420,159 @@ class TrainingApp extends LitElement {
     `;
   }
 
+  renderSync() {
+    const adapters = this.syncRegistry.list();
+    const targets = this.syncState?.targets || [];
+    const googleConfigured = Boolean(this.googleClientId);
+
+    return html`
+      <section class="section">
+        <h2>Sync</h2>
+        <div class="stack">
+          <div class="inline">
+            <label class="sync-toggle-label">
+              <input
+                type="checkbox"
+                ?checked=${Boolean(this.syncState?.autoSyncEnabled)}
+                @change=${event => this.setSyncAutoEnabled(event.target.checked)}
+              />
+              Auto-sync after changes
+            </label>
+            <wa-button
+              variant="primary"
+              ?disabled=${Boolean(this.syncState?.isSyncing)}
+              @click=${() => this.syncNow()}
+            >${this.syncState?.isSyncing ? 'Syncing...' : 'Sync all now'}</wa-button>
+          </div>
+          ${this.syncFeedback ? html`<wa-callout>${this.syncFeedback}</wa-callout>` : html``}
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Add Sync Target</h2>
+        <div class="stack">
+          <wa-select
+            label="Provider"
+            .value=${this.syncProviderId}
+            @change=${event => {
+              this.syncProviderId = event.currentTarget.value;
+              if (this.syncProviderId === 'google-sheets') {
+                this.syncNameInput = 'Google Sheets';
+              }
+            }}
+          >
+            ${adapters.map(adapter => html`<wa-option value=${adapter.id}>${adapter.id}</wa-option>`)}
+          </wa-select>
+          ${this.syncProviderId !== 'google-sheets'
+            ? html`<wa-input
+                label="Target name"
+                .value=${this.syncNameInput}
+                @input=${event => {
+                  this.syncNameInput = event.target.value;
+                }}
+              ></wa-input>`
+            : html``}
+
+          ${this.syncProviderId === 'google-sheets'
+            ? html`
+                ${googleConfigured
+                  ? html`<div class="muted">Click connect, then choose an existing sheet or create a new one.</div>`
+                  : html`<wa-callout variant="warning"
+                      >Google OAuth client id is missing from app config.</wa-callout
+                    >`}
+              `
+            : html``}
+
+          <div class="inline">
+            <wa-button
+              variant="primary"
+              ?disabled=${this.syncProviderId === 'google-sheets' && !googleConfigured}
+              @click=${() => this.addSyncTarget()}
+            >${this.syncProviderId === 'google-sheets' ? 'Connect Google Sheets' : 'Connect target'}</wa-button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Connected Targets</h2>
+        ${targets.length === 0
+          ? html`<div class="muted">No sync targets configured yet.</div>`
+          : html`
+              <div class="list">
+                ${targets.map(
+                  target => html`
+                    <div class="list-item sync-target-item">
+                      <div>
+                        <strong>${target.name}</strong>
+                        <div class="muted">
+                          ${target.adapterId} · ${target.connected ? target.status : 'disconnected'}
+                        </div>
+                        <div class="muted">Last sync: ${formatTimestamp(target.lastSyncedAt)}</div>
+                        ${target.lastError ? html`<div class="muted">${target.lastError}</div>` : html``}
+                      </div>
+                      <div class="inline">
+                        <wa-button
+                          ?disabled=${Boolean(this.syncState?.isSyncing) || !target.connected}
+                          @click=${() => this.syncNow([target.id])}
+                        >Sync now</wa-button>
+                        <wa-button
+                          ?disabled=${!target.connected}
+                          @click=${() => this.disconnectSyncTarget(target.id)}
+                        >Disconnect</wa-button>
+                        <wa-button variant="danger" @click=${() => this.removeSyncTarget(target.id)}
+                          >Remove</wa-button
+                        >
+                      </div>
+                    </div>
+                  `
+                )}
+              </div>
+            `}
+      </section>
+
+      <wa-dialog
+        label="Connect Google Sheets"
+        ?open=${this.googleConnectDialogOpen}
+        @wa-after-hide=${() => this.closeGoogleConnectDialog()}
+      >
+        <div class="stack">
+          <div class="muted">Select an existing spreadsheet backup or create a new one.</div>
+          <label class="native-select-label" for="google-sheet-select">Existing spreadsheet</label>
+          <select
+            id="google-sheet-select"
+            class="native-select"
+            .value=${this.googleSpreadsheetChoice}
+            @change=${event => {
+              this.googleSpreadsheetChoice = event.target.value;
+            }}
+          >
+            <option value="">Select...</option>
+            ${this.googleSpreadsheetOptions.map(
+              item => html`<option value=${item.id}>${item.name}</option>`
+            )}
+          </select>
+          <div class="inline">
+            <wa-button
+              ?disabled=${!this.googleSpreadsheetChoice || this.googleSpreadsheetsLoading}
+              @click=${() => this.connectExistingGoogleSheetAndRestore(this.googleSpreadsheetChoice)}
+              >Use selected spreadsheet</wa-button
+            >
+            <wa-button @click=${() => this.loadGoogleSpreadsheetOptions()}>Refresh list</wa-button>
+          </div>
+          ${this.googleSpreadsheetsLoading ? html`<div class="muted">Loading spreadsheets...</div>` : html``}
+          <div class="sync-or-divider">Or</div>
+          <wa-button
+            variant="primary"
+            ?disabled=${this.googleSpreadsheetsLoading}
+            @click=${() => this.createAndConnectGoogleSheet()}
+            >Create new spreadsheet</wa-button
+          >
+        </div>
+        <wa-button slot="footer" @click=${() => this.closeGoogleConnectDialog()}>Close</wa-button>
+      </wa-dialog>
+    `;
+  }
+
   render() {
     return html`
       <main>
@@ -975,10 +1588,12 @@ class TrainingApp extends LitElement {
           <wa-tab slot="nav" panel="programs">Programs</wa-tab>
           <wa-tab slot="nav" panel="train">Train</wa-tab>
           <wa-tab slot="nav" panel="progress">Progress</wa-tab>
+          <wa-tab slot="nav" panel="sync">Sync</wa-tab>
 
           <wa-tab-panel name="programs">${this.renderPrograms()}</wa-tab-panel>
           <wa-tab-panel name="train">${this.renderTraining()}</wa-tab-panel>
           <wa-tab-panel name="progress">${this.renderProgress()}</wa-tab-panel>
+          <wa-tab-panel name="sync">${this.renderSync()}</wa-tab-panel>
         </wa-tab-group>
 
         <footer>

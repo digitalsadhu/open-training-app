@@ -93,11 +93,14 @@ test('startSessionState hydrates from last session for same workout', () => {
   const draft = startSessionState(program, 'w1', sessions, () => 's1', '2026-02-13');
   assert.equal(draft.workoutId, 'w1');
   assert.equal(draft.workoutName, 'Bench Day');
+  assert.equal(draft.entries[0].sets.length, 3);
   assert.equal(draft.entries[0].sets[0].reps, '');
   assert.equal(draft.entries[0].sets[0].weight, '');
   assert.equal(draft.entries[0].sets[0].targetReps, 6);
   assert.equal(draft.entries[0].sets[0].targetWeight, 105);
   assert.equal(draft.entries[0].sets[0].logged, false);
+  assert.equal(draft.entries[0].sets[1].targetReps, '');
+  assert.equal(draft.entries[0].sets[1].targetWeight, '');
 });
 
 test('startSessionState builds default number of sets when no prior session exists', () => {

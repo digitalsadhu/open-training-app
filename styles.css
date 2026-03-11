@@ -120,9 +120,57 @@ header p {
   gap: 10px;
 }
 
+.exercise-card.is-skipped {
+  opacity: 0.5;
+  filter: grayscale(0.4);
+}
+
 .exercise-card h3 {
   margin: 0;
   font-size: 1rem;
+}
+
+.exercise-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.history-item {
+  align-items: flex-start;
+}
+
+.sync-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.sync-target-item {
+  align-items: flex-start;
+}
+
+.native-select-label {
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.native-select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.75);
+  color: var(--text);
+}
+
+.sync-or-divider {
+  margin: 8px 0 2px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .set-row {
@@ -177,6 +225,12 @@ header p {
 
 .muted {
   color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.last-trained {
+  color: #5eead4;
+  font-style: italic;
   font-size: 0.9rem;
 }
 
@@ -240,6 +294,32 @@ wa-tab::part(base) {
 wa-tab[active]::part(base) {
   background: rgba(20, 184, 166, 0.2);
   color: #99f6e4;
+}
+
+wa-dialog::part(panel) {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+wa-dialog::part(header) {
+  background: rgba(15, 23, 42, 0.92);
+  color: var(--text);
+}
+
+wa-dialog::part(body) {
+  background: rgba(15, 23, 42, 0.92);
+  color: var(--text);
+}
+
+wa-dialog::part(footer) {
+  background: rgba(15, 23, 42, 0.92);
+  color: var(--text);
+}
+
+wa-dialog::part(title) {
+  color: var(--text) !important;
+  font-weight: 700;
 }
 
 @media (min-width: 700px) {

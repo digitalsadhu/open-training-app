@@ -134,24 +134,17 @@ export const startSessionState = (program, workoutId, sessions, createId, dateIS
   const entries = workout.exercises.map(exercise => {
     const last = lastEntryForExercise(sessions, exercise.id, workout.id);
     const setCount = Math.max(1, Number(exercise.defaultSets) || 1);
+    const lastSets = Array.isArray(last?.sets) ? last.sets : [];
     return {
       exerciseId: exercise.id,
       name: exercise.name,
-      sets: last?.sets?.length
-        ? last.sets.map(set => ({
-            reps: '',
-            weight: '',
-            targetReps: set.reps ?? '',
-            targetWeight: set.weight ?? '',
-            logged: false
-          }))
-        : Array.from({ length: setCount }, () => ({
-            reps: '',
-            weight: '',
-            targetReps: '',
-            targetWeight: '',
-            logged: false
-          }))
+      sets: Array.from({ length: setCount }, (_, index) => ({
+        reps: '',
+        weight: '',
+        targetReps: lastSets[index]?.reps ?? '',
+        targetWeight: lastSets[index]?.weight ?? '',
+        logged: false
+      }))
     };
   });
 
