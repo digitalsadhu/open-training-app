@@ -10,6 +10,122 @@ const makeWorkout = (createId, name) => ({
   exercises: []
 });
 
+const toNumberOr = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const roundToStep = (value, step) => {
+  const safeStep = Math.max(0.01, Number(step) || 1);
+  const rounded = Math.round(value / safeStep) * safeStep;
+  return Number(rounded.toFixed(2));
+};
+
+export const getRepRangeForPriority = trainingPriority =>
+  trainingPriority === 'strength'
+    ? { min: 3, max: 6 }
+    : { min: 8, max: 12 };
+
+const getProgressionConfig = (exercise, trainingPriority) => {
+  const defaultRange = getRepRangeForPriority(trainingPriority);
+  const repRangeMin = Math.max(1, toNumberOr(exercise?.repRangeMin, defaultRange.min));
+  const repRangeMax = Math.max(repRangeMin, toNumberOr(exercise?.repRangeMax, defaultRange.max));
+  const weightStepKg = Math.max(0.25, toNumberOr(exercise?.weightStepKg, trainingPriority === 'strength' ? 2.5 : 1.25));
+  const deloadPercent = Math.min(25, Math.max(2.5, toNumberOr(exercise?.deloadPercent, 7.5)));
+  const failStreakForDeload = Math.max(2, toNumberOr(exercise?.failStreakForDeload, 2));
+
+  return {
+    repRangeMin,
+    repRangeMax,
+    weightStepKg,
+    deloadPercent,
+    failStreakForDeload
+  };
+};
+
+const getFirstFilled = (sets, key) => {
+  const found = (sets || []).find(set => set?.[key] !== '' && set?.[key] !== null && set?.[key] !== undefined);
+  return found ? found[key] : '';
+};
+
+export const computeProgressionForEntry = ({
+  draftEntry,
+  loggedSets,
+  exercise,
+  previousEntry,
+  trainingPriority
+}) => {
+  const config = getProgressionConfig(exercise, trainingPriority);
+  const previousFailStreak = Math.max(0, Number(previousEntry?.progression?.failStreakAfter) || 0);
+  const plannedSets = Math.max(1, Number(exercise?.defaultSets) || (loggedSets || []).length || 1);
+  const requiredSets = Math.max(1, Math.ceil(plannedSets * 0.67));
+
+  const baselineTargetReps =
+    toNumberOr(getFirstFilled(draftEntry?.sets, 'targetReps'), NaN) ||
+    toNumberOr(previousEntry?.progression?.nextTargetReps, NaN) ||
+    config.repRangeMin;
+
+  const baselineTargetWeightRaw =
+    clampNumber(getFirstFilled(draftEntry?.sets, 'targetWeight')) !== ''
+      ? clampNumber(getFirstFilled(draftEntry?.sets, 'targetWeight'))
+      : clampNumber(previousEntry?.progression?.nextTargetWeight);
+
+  const baselineTargetWeight = clampNumber(baselineTargetWeightRaw);
+
+  const successfulSets = (loggedSets || []).filter(set => {
+    const repsOk = toNumberOr(set?.reps, 0) >= toNumberOr(baselineTargetReps, 0);
+    if (baselineTargetWeight === '') return repsOk;
+    const weightOk = toNumberOr(set?.weight, 0) >= toNumberOr(baselineTargetWeight, 0);
+    return repsOk && weightOk;
+  }).length;
+
+  const topRangeSets = (loggedSets || []).filter(
+    set => toNumberOr(set?.reps, 0) >= config.repRangeMax
+  ).length;
+
+  const sessionSuccess = successfulSets >= requiredSets;
+  const topReached = topRangeSets >= requiredSets;
+
+  let nextTargetReps = Math.max(config.repRangeMin, Math.min(config.repRangeMax, toNumberOr(baselineTargetReps, config.repRangeMin)));
+  let nextTargetWeight = baselineTargetWeight;
+  let failStreakAfter = previousFailStreak;
+  let decision = 'hold';
+
+  if (sessionSuccess && topReached) {
+    decision = 'increase_weight';
+    nextTargetReps = config.repRangeMin;
+    failStreakAfter = 0;
+    if (nextTargetWeight !== '') {
+      nextTargetWeight = roundToStep(toNumberOr(nextTargetWeight, 0) + config.weightStepKg, config.weightStepKg);
+    }
+  } else if (sessionSuccess) {
+    decision = 'increase_reps';
+    nextTargetReps = Math.min(config.repRangeMax, toNumberOr(nextTargetReps, config.repRangeMin) + 1);
+    failStreakAfter = 0;
+  } else {
+    failStreakAfter = previousFailStreak + 1;
+    if (failStreakAfter >= config.failStreakForDeload && nextTargetWeight !== '') {
+      decision = 'deload';
+      const factor = 1 - config.deloadPercent / 100;
+      nextTargetWeight = roundToStep(toNumberOr(nextTargetWeight, 0) * factor, config.weightStepKg);
+      nextTargetReps = Math.round((config.repRangeMin + config.repRangeMax) / 2);
+      failStreakAfter = 0;
+    }
+  }
+
+  return {
+    decision,
+    sessionSuccess,
+    topReached,
+    successfulSets,
+    requiredSets,
+    failStreakAfter,
+    nextTargetReps,
+    nextTargetWeight,
+    config
+  };
+};
+
 export const createProgramState = (programs, name, createId) => {
   const trimmed = name.trim();
   if (!trimmed) {
@@ -126,23 +242,41 @@ export const lastEntryForExercise = (sessions, exerciseId, workoutId = '') => {
   return null;
 };
 
-export const startSessionState = (program, workoutId, sessions, createId, dateISO) => {
+export const startSessionState = (program, workoutId, sessions, createId, dateISO, trainingPriority = 'hypertrophy') => {
   if (!program) return null;
   const workout = program.workouts.find(item => item.id === workoutId);
   if (!workout) return null;
 
   const entries = workout.exercises.map(exercise => {
     const last = lastEntryForExercise(sessions, exercise.id, workout.id);
+    const config = getProgressionConfig(exercise, trainingPriority);
     const setCount = Math.max(1, Number(exercise.defaultSets) || 1);
     const lastSets = Array.isArray(last?.sets) ? last.sets : [];
+    const fallbackLastReps = toNumberOr(lastSets[0]?.reps, NaN);
+    const fallbackLastWeight = clampNumber(lastSets[0]?.weight);
+
+    const nextTargetReps =
+      toNumberOr(last?.progression?.nextTargetReps, NaN) ||
+      fallbackLastReps ||
+      config.repRangeMin;
+
+    const defaultWeight = clampNumber(exercise.defaultWeight);
+    const nextTargetWeightFromHistory = clampNumber(last?.progression?.nextTargetWeight);
+    const nextTargetWeight =
+      nextTargetWeightFromHistory !== ''
+        ? nextTargetWeightFromHistory
+        : fallbackLastWeight !== ''
+          ? fallbackLastWeight
+          : defaultWeight;
+
     return {
       exerciseId: exercise.id,
       name: exercise.name,
-      sets: Array.from({ length: setCount }, (_, index) => ({
+      sets: Array.from({ length: setCount }, () => ({
         reps: '',
         weight: '',
-        targetReps: lastSets[index]?.reps ?? '',
-        targetWeight: lastSets[index]?.weight ?? '',
+        targetReps: nextTargetReps,
+        targetWeight: nextTargetWeight,
         logged: false
       }))
     };

@@ -25,6 +25,7 @@ import {
   addDraftSetState,
   addExerciseToWorkoutState,
   addWorkoutToProgramState,
+  computeProgressionForEntry,
   createProgramState,
   lastEntryForExercise,
   logDraftSetState,
@@ -55,6 +56,7 @@ const defaultState = {
   sessions: [],
   selectedProgramId: '',
   selectedWorkoutId: '',
+  trainingPriority: 'hypertrophy',
   draftSession: null,
   sync: createDefaultSyncState(),
   exerciseCache: {
@@ -204,6 +206,7 @@ class TrainingApp extends LitElement {
     exerciseSearch: { state: true },
     loadingExercises: { state: true },
     selectedExercise: { state: true },
+    trainingPriority: { state: true },
     exerciseCacheUpdatedAt: { state: true },
     exerciseLoadError: { state: true },
     exerciseFetchStatus: { state: true },
@@ -243,6 +246,7 @@ class TrainingApp extends LitElement {
     const initialProgram = this.programs.find(item => item.id === this.selectedProgramId);
     this.selectedWorkoutId =
       saved.selectedWorkoutId || initialProgram?.workouts?.[0]?.id || '';
+    this.trainingPriority = saved.trainingPriority || 'hypertrophy';
     this.draftSession = saved.draftSession;
     this.exercises = saved.exerciseCache.exercises || [];
     this.exerciseSearch = '';
@@ -370,6 +374,7 @@ class TrainingApp extends LitElement {
       sessions: this.sessions,
       selectedProgramId: this.selectedProgramId,
       selectedWorkoutId: this.selectedWorkoutId,
+      trainingPriority: this.trainingPriority,
       draftSession: this.draftSession,
       sync: this.syncState,
       exerciseCache: {
@@ -385,6 +390,7 @@ class TrainingApp extends LitElement {
     this.sessions = aligned.sessions;
     this.selectedProgramId = aligned.selectedProgramId;
     this.selectedWorkoutId = aligned.selectedWorkoutId;
+    this.trainingPriority = aligned.trainingPriority || 'hypertrophy';
     this.draftSession = aligned.draftSession;
     this.syncState = aligned.sync;
     this.exercises = aligned.exerciseCache?.exercises || [];
@@ -748,7 +754,14 @@ class TrainingApp extends LitElement {
 
   startSession(programId, workoutId) {
     const program = this.programs.find(item => item.id === programId);
-    const nextDraft = startSessionState(program, workoutId, this.sessions, createId, todayISO());
+    const nextDraft = startSessionState(
+      program,
+      workoutId,
+      this.sessions,
+      createId,
+      todayISO(),
+      this.trainingPriority
+    );
     this.draftSession = nextDraft
       ? {
           ...nextDraft,
@@ -834,14 +847,46 @@ class TrainingApp extends LitElement {
       return;
     }
 
+    const program = this.programs.find(item => item.id === this.draftSession.programId);
+    const workout = program?.workouts?.find(item => item.id === this.draftSession.workoutId);
+
     const finalizedEntries = this.draftSession.entries
       .filter(entry => !entry.skipped)
-      .map(entry => ({
-        ...entry,
-        sets: entry.sets
+      .map(entry => {
+        const loggedSets = entry.sets
           .filter(set => set.logged)
-          .map(set => ({ reps: set.reps, weight: set.weight }))
-      }));
+          .map(set => ({ reps: set.reps, weight: set.weight }));
+        const exercise = workout?.exercises?.find(item => item.id === entry.exerciseId) || {
+          id: entry.exerciseId,
+          defaultSets: loggedSets.length || 1
+        };
+        const previous = lastEntryForExercise(this.sessions, entry.exerciseId, this.draftSession.workoutId);
+        const progression = computeProgressionForEntry({
+          draftEntry: entry,
+          loggedSets,
+          exercise,
+          previousEntry: previous,
+          trainingPriority: this.trainingPriority
+        });
+
+        return {
+          ...entry,
+          sets: loggedSets,
+          progression: {
+            decision: progression.decision,
+            sessionSuccess: progression.sessionSuccess,
+            topReached: progression.topReached,
+            successfulSets: progression.successfulSets,
+            requiredSets: progression.requiredSets,
+            failStreakAfter: progression.failStreakAfter,
+            nextTargetReps: progression.nextTargetReps,
+            nextTargetWeight: progression.nextTargetWeight,
+            repRangeMin: progression.config.repRangeMin,
+            repRangeMax: progression.config.repRangeMax,
+            weightStepKg: progression.config.weightStepKg
+          }
+        };
+      });
     this.sessions = [
       { ...this.draftSession, entries: finalizedEntries, savedAt: Date.now() },
       ...this.sessions
@@ -849,6 +894,11 @@ class TrainingApp extends LitElement {
     this.saveValidationError = '';
     this.draftSession = null;
     this.persist();
+  }
+
+  setTrainingPriority(value) {
+    this.trainingPriority = value === 'strength' ? 'strength' : 'hypertrophy';
+    this.persist({ triggerSync: false });
   }
 
   lastEntryForExercise(exerciseId) {
@@ -1427,6 +1477,23 @@ class TrainingApp extends LitElement {
 
     return html`
       <section class="section">
+        <h2>Training Preferences</h2>
+        <div class="stack">
+          <wa-select
+            label="Training priority"
+            .value=${this.trainingPriority}
+            @change=${event => this.setTrainingPriority(event.currentTarget.value)}
+          >
+            <wa-option value="strength">Strength (lower reps)</wa-option>
+            <wa-option value="hypertrophy">Hypertrophy (higher reps)</wa-option>
+          </wa-select>
+          <div class="muted">
+            Strength defaults target 3-6 reps. Hypertrophy defaults target 8-12 reps.
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
         <h2>Sync</h2>
         <div class="stack">
           <div class="inline">
@@ -1588,12 +1655,12 @@ class TrainingApp extends LitElement {
           <wa-tab slot="nav" panel="programs">Programs</wa-tab>
           <wa-tab slot="nav" panel="train">Train</wa-tab>
           <wa-tab slot="nav" panel="progress">Progress</wa-tab>
-          <wa-tab slot="nav" panel="sync">Sync</wa-tab>
+          <wa-tab slot="nav" panel="settings">Settings</wa-tab>
 
           <wa-tab-panel name="programs">${this.renderPrograms()}</wa-tab-panel>
           <wa-tab-panel name="train">${this.renderTraining()}</wa-tab-panel>
           <wa-tab-panel name="progress">${this.renderProgress()}</wa-tab-panel>
-          <wa-tab-panel name="sync">${this.renderSync()}</wa-tab-panel>
+          <wa-tab-panel name="settings">${this.renderSync()}</wa-tab-panel>
         </wa-tab-group>
 
         <footer>

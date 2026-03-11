@@ -4,7 +4,9 @@ import {
   addDraftSetState,
   addExerciseToWorkoutState,
   addWorkoutToProgramState,
+  computeProgressionForEntry,
   createProgramState,
+  getRepRangeForPriority,
   logDraftSetState,
   removeDraftSetState,
   removeExerciseFromWorkoutState,
@@ -99,8 +101,8 @@ test('startSessionState hydrates from last session for same workout', () => {
   assert.equal(draft.entries[0].sets[0].targetReps, 6);
   assert.equal(draft.entries[0].sets[0].targetWeight, 105);
   assert.equal(draft.entries[0].sets[0].logged, false);
-  assert.equal(draft.entries[0].sets[1].targetReps, '');
-  assert.equal(draft.entries[0].sets[1].targetWeight, '');
+  assert.equal(draft.entries[0].sets[1].targetReps, 6);
+  assert.equal(draft.entries[0].sets[1].targetWeight, 105);
 });
 
 test('startSessionState builds default number of sets when no prior session exists', () => {
@@ -113,8 +115,19 @@ test('startSessionState builds default number of sets when no prior session exis
   assert.equal(draft.entries[0].sets.length, 4);
   assert.equal(draft.entries[0].sets[0].reps, '');
   assert.equal(draft.entries[0].sets[0].weight, '');
-  assert.equal(draft.entries[0].sets[0].targetReps, '');
-  assert.equal(draft.entries[0].sets[0].targetWeight, '');
+  assert.equal(draft.entries[0].sets[0].targetReps, 8);
+  assert.equal(draft.entries[0].sets[0].targetWeight, 50);
+});
+
+test('startSessionState uses lower default rep range for strength priority', () => {
+  const program = {
+    id: 'p1',
+    name: 'Program',
+    workouts: [{ id: 'w1', name: 'Push', exercises: [{ id: 'e1', name: 'Press', defaultSets: 4, defaultWeight: 50 }] }]
+  };
+  const draft = startSessionState(program, 'w1', [], () => 's1', '2026-02-13', 'strength');
+  assert.equal(draft.entries[0].sets[0].targetReps, 3);
+  assert.equal(draft.entries[0].sets[0].targetWeight, 50);
 });
 
 test('draft set mutations adjust entries', () => {
@@ -132,4 +145,80 @@ test('draft set mutations adjust entries', () => {
   assert.equal(logged.entries[0].sets[0].logged, true);
   const removed = removeDraftSetState(logged, 'e1', 0);
   assert.equal(removed.entries[0].sets.length, 1);
+});
+
+test('rep ranges map by training priority', () => {
+  assert.deepEqual(getRepRangeForPriority('strength'), { min: 3, max: 6 });
+  assert.deepEqual(getRepRangeForPriority('hypertrophy'), { min: 8, max: 12 });
+});
+
+test('computeProgressionForEntry increases reps inside range when successful', () => {
+  const result = computeProgressionForEntry({
+    draftEntry: {
+      sets: [
+        { targetReps: 8, targetWeight: 60 },
+        { targetReps: 8, targetWeight: 60 },
+        { targetReps: 8, targetWeight: 60 }
+      ]
+    },
+    loggedSets: [
+      { reps: 8, weight: 60 },
+      { reps: 9, weight: 60 },
+      { reps: 8, weight: 60 }
+    ],
+    exercise: { defaultSets: 3 },
+    previousEntry: null,
+    trainingPriority: 'hypertrophy'
+  });
+
+  assert.equal(result.decision, 'increase_reps');
+  assert.equal(result.nextTargetReps, 9);
+  assert.equal(result.nextTargetWeight, 60);
+});
+
+test('computeProgressionForEntry increases weight when top range reached', () => {
+  const result = computeProgressionForEntry({
+    draftEntry: {
+      sets: [
+        { targetReps: 12, targetWeight: 20 },
+        { targetReps: 12, targetWeight: 20 },
+        { targetReps: 12, targetWeight: 20 }
+      ]
+    },
+    loggedSets: [
+      { reps: 12, weight: 20 },
+      { reps: 12, weight: 20 },
+      { reps: 12, weight: 20 }
+    ],
+    exercise: { defaultSets: 3, weightStepKg: 1.25 },
+    previousEntry: null,
+    trainingPriority: 'hypertrophy'
+  });
+
+  assert.equal(result.decision, 'increase_weight');
+  assert.equal(result.nextTargetReps, 8);
+  assert.equal(result.nextTargetWeight, 21.25);
+});
+
+test('computeProgressionForEntry deloads after fail streak threshold', () => {
+  const result = computeProgressionForEntry({
+    draftEntry: {
+      sets: [
+        { targetReps: 5, targetWeight: 100 },
+        { targetReps: 5, targetWeight: 100 },
+        { targetReps: 5, targetWeight: 100 }
+      ]
+    },
+    loggedSets: [
+      { reps: 3, weight: 100 },
+      { reps: 3, weight: 95 },
+      { reps: 4, weight: 95 }
+    ],
+    exercise: { defaultSets: 3, weightStepKg: 2.5, deloadPercent: 10, failStreakForDeload: 2 },
+    previousEntry: { progression: { failStreakAfter: 1 } },
+    trainingPriority: 'strength'
+  });
+
+  assert.equal(result.decision, 'deload');
+  assert.equal(result.nextTargetWeight, 90);
 });
