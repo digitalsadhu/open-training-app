@@ -36,8 +36,13 @@ test('addWorkoutToProgramState adds named workouts', () => {
 
 test('addExerciseToWorkoutState inserts exercise once', () => {
   const programs = [{ id: 'p1', name: 'Program', workouts: [{ id: 'w1', name: 'Push', exercises: [] }] }];
-  const next = addExerciseToWorkoutState(programs, 'p1', 'w1', { id: 'e1', name: 'Squat' });
+  const next = addExerciseToWorkoutState(programs, 'p1', 'w1', {
+    id: 'e1',
+    name: 'Squat',
+    muscleGroups: ['Legs', 'Glutes']
+  });
   assert.equal(next[0].workouts[0].exercises.length, 1);
+  assert.deepEqual(next[0].workouts[0].exercises[0].muscleGroups, ['Legs', 'Glutes']);
   const again = addExerciseToWorkoutState(next, 'p1', 'w1', { id: 'e1', name: 'Squat' });
   assert.equal(again[0].workouts[0].exercises.length, 1);
 });
@@ -144,6 +149,21 @@ test('startSessionState hydrates from last session for same workout', () => {
   assert.equal(draft.entries[0].sets[0].logged, false);
   assert.equal(draft.entries[0].sets[1].targetReps, 6);
   assert.equal(draft.entries[0].sets[1].targetWeight, 105);
+  assert.deepEqual(draft.entries[0].muscleGroups, ['Uncategorized']);
+});
+
+test('startSessionState carries muscle groups from planned exercise', () => {
+  const program = {
+    id: 'p1',
+    name: 'Program',
+    workouts: [{
+      id: 'w1',
+      name: 'Pull',
+      exercises: [{ id: 'e1', name: 'Row', defaultSets: 3, muscleGroups: ['Back', 'Arms'] }]
+    }]
+  };
+  const draft = startSessionState(program, 'w1', [], () => 's1', '2026-02-13');
+  assert.deepEqual(draft.entries[0].muscleGroups, ['Back', 'Arms']);
 });
 
 test('startSessionState builds default number of sets when no prior session exists', () => {

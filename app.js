@@ -10,7 +10,7 @@ import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/compo
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/tab-panel/tab-panel.js';
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/dialog/dialog.js';
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/icon/icon.js';
-import { fetchExercises, getEnglishLanguageId } from './data.js';
+import { fetchExercises, getEnglishLanguageId, MUSCLE_GROUPS, UNCATEGORIZED_GROUP } from './data.js';
 import {
   SyncRegistry,
   alignSelections,
@@ -42,6 +42,7 @@ const STORAGE_KEY = 'training-app:v1';
 const EXERCISE_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
 const DEFAULT_SYNC_SHEET_TAB = '__training_sync';
 const DEFAULT_SYNC_DOC_ID = 'default';
+const ALL_GROUPS_FILTER = '__all__';
 
 const resolveGoogleClientId = () => {
   const fromGlobal = String(globalThis.__TRAINING_APP_GOOGLE_CLIENT_ID || '').trim();
@@ -51,6 +52,25 @@ const resolveGoogleClientId = () => {
   ).trim();
   return fromMeta;
 };
+const normalizeMuscleGroups = groups => {
+  const normalized = Array.from(
+    new Set(
+      (Array.isArray(groups) ? groups : [])
+        .map(item => String(item || '').trim())
+        .filter(Boolean)
+    )
+  );
+  return normalized.length > 0 ? normalized : [UNCATEGORIZED_GROUP];
+};
+
+const normalizeExerciseLibraryItem = item => ({
+  ...item,
+  muscleGroups: normalizeMuscleGroups(item?.muscleGroups),
+  sourceMuscles: {
+    primary: Array.from(new Set((item?.sourceMuscles?.primary || []).map(value => String(value || '').trim()).filter(Boolean))),
+    secondary: Array.from(new Set((item?.sourceMuscles?.secondary || []).map(value => String(value || '').trim()).filter(Boolean)))
+  }
+});
 
 const defaultState = {
   programs: [],
@@ -76,7 +96,8 @@ const normalizePrograms = programs =>
           name: workout.name || 'Workout',
           exercises: (workout.exercises || []).map(exercise => ({
             ...exercise,
-            trainingPriority: exercise.trainingPriority || null
+            trainingPriority: exercise.trainingPriority || null,
+            muscleGroups: normalizeMuscleGroups(exercise.muscleGroups)
           }))
         }))
       };
@@ -91,7 +112,11 @@ const normalizePrograms = programs =>
             globalThis.crypto?.randomUUID?.() ||
             `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
           name: 'Workout A',
-          exercises: migratedExercises
+          exercises: migratedExercises.map(exercise => ({
+            ...exercise,
+            trainingPriority: exercise.trainingPriority || null,
+            muscleGroups: normalizeMuscleGroups(exercise.muscleGroups)
+          }))
         }
       ]
     };
@@ -112,7 +137,8 @@ const loadState = () => {
       },
       exerciseCache: {
         ...defaultState.exerciseCache,
-        ...(parsed.exerciseCache || {})
+        ...(parsed.exerciseCache || {}),
+        exercises: (parsed.exerciseCache?.exercises || []).map(normalizeExerciseLibraryItem)
       }
     };
     return migrateStateForSync(merged);
@@ -208,6 +234,7 @@ class TrainingApp extends LitElement {
     draftSession: { state: true },
     exercises: { state: true },
     exerciseSearch: { state: true },
+    exerciseGroupFilter: { state: true },
     loadingExercises: { state: true },
     selectedExercise: { state: true },
     trainingPriority: { state: true },
@@ -256,6 +283,7 @@ class TrainingApp extends LitElement {
     this.draftSession = saved.draftSession;
     this.exercises = saved.exerciseCache.exercises || [];
     this.exerciseSearch = '';
+    this.exerciseGroupFilter = ALL_GROUPS_FILTER;
     this.loadingExercises = false;
     this.selectedExercise = '';
     this.exerciseCacheUpdatedAt = saved.exerciseCache.updatedAt || 0;
@@ -401,7 +429,7 @@ class TrainingApp extends LitElement {
     this.trainingPriority = aligned.trainingPriority || 'hypertrophy';
     this.draftSession = aligned.draftSession;
     this.syncState = aligned.sync;
-    this.exercises = aligned.exerciseCache?.exercises || [];
+    this.exercises = (aligned.exerciseCache?.exercises || []).map(normalizeExerciseLibraryItem);
     this.exerciseCacheUpdatedAt = aligned.exerciseCache?.updatedAt || 0;
   }
 
@@ -419,7 +447,7 @@ class TrainingApp extends LitElement {
 
   updateExerciseCache(timestamp, exercises) {
     this.exerciseCacheUpdatedAt = timestamp;
-    this.exercises = exercises;
+    this.exercises = (exercises || []).map(normalizeExerciseLibraryItem);
     this.persist({ triggerSync: false });
   }
 
@@ -427,7 +455,7 @@ class TrainingApp extends LitElement {
     console.info('[training-app] loadExerciseLibrary', { force });
     const cached = loadState().exerciseCache;
     if (!force && cached.exercises.length > 0 && Date.now() - cached.updatedAt < EXERCISE_CACHE_MAX_AGE_MS) {
-      this.exercises = cached.exercises;
+      this.exercises = cached.exercises.map(normalizeExerciseLibraryItem);
       this.exerciseCacheUpdatedAt = cached.updatedAt;
       this.exerciseFetchStatus = {
         ...this.exerciseFetchStatus,
@@ -784,6 +812,7 @@ class TrainingApp extends LitElement {
     this.applyStateSnapshot(reset);
     this.selectedExercise = '';
     this.exerciseSearch = '';
+    this.exerciseGroupFilter = ALL_GROUPS_FILTER;
     this.syncFeedback = '';
     this.historyExerciseId = '';
     this.historyExerciseName = '';
@@ -991,10 +1020,34 @@ class TrainingApp extends LitElement {
     this.persist();
   }
 
+  setExerciseGroupFilter(group) {
+    const next = String(group || '').trim();
+    this.exerciseGroupFilter = next || ALL_GROUPS_FILTER;
+  }
+
+  renderMuscleGroupChips(groups, { clickable = false, selected = '' } = {}) {
+    const normalized = normalizeMuscleGroups(groups);
+    return html`
+      <div class="chip-row">
+        ${normalized.map(group =>
+          clickable
+            ? html`
+                <button
+                  class="muscle-chip ${selected === group ? 'is-selected' : ''}"
+                  @click=${() => this.setExerciseGroupFilter(selected === group ? ALL_GROUPS_FILTER : group)}
+                >${group}</button>
+              `
+            : html`<span class="muscle-chip">${group}</span>`
+        )}
+      </div>
+    `;
+  }
+
   selectExerciseFromSearch(programId, workoutId, exercise) {
     this.addExerciseToWorkout(programId, workoutId, {
       ...exercise,
-      trainingPriority: this.trainingPriority
+      trainingPriority: this.trainingPriority,
+      muscleGroups: normalizeMuscleGroups(exercise.muscleGroups)
     });
     this.exerciseSearch = '';
   }
@@ -1034,12 +1087,20 @@ class TrainingApp extends LitElement {
       .filter(item => item.name)
       .map(item => ({ ...item, score: scoreExerciseMatch(item.name, search) }))
       .filter(item => item.score > 0)
+      .filter(item =>
+        this.exerciseGroupFilter === ALL_GROUPS_FILTER
+          ? true
+          : normalizeMuscleGroups(item.muscleGroups).includes(this.exerciseGroupFilter)
+      )
       .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
       .map(item => ({
         ...item,
         lastTrainedAt: lastTrainedByExerciseId.get(String(item.id)) || 0
       }))
       .slice(0, 30);
+    const availableExerciseGroups = MUSCLE_GROUPS.filter(group =>
+      this.exercises.some(item => normalizeMuscleGroups(item.muscleGroups).includes(group))
+    );
 
     return html`
       <section class="section">
@@ -1168,12 +1229,25 @@ class TrainingApp extends LitElement {
                       const exactMatch = this.exercises.find(
                         item => item.name.toLowerCase() === value.toLowerCase()
                       );
-                      const exercise = exactMatch || { id: createId(), name: value };
+                      const exercise = exactMatch || { id: createId(), name: value, muscleGroups: [UNCATEGORIZED_GROUP] };
                       if (!selectedWorkout) return;
                       this.selectExerciseFromSearch(program.id, selectedWorkout.id, exercise);
                     }
                   }}
                 ></wa-input>
+
+                <div class="chip-row">
+                  <button
+                    class="muscle-chip ${this.exerciseGroupFilter === ALL_GROUPS_FILTER ? 'is-selected' : ''}"
+                    @click=${() => this.setExerciseGroupFilter(ALL_GROUPS_FILTER)}
+                  >All</button>
+                  ${availableExerciseGroups.map(group => html`
+                    <button
+                      class="muscle-chip ${this.exerciseGroupFilter === group ? 'is-selected' : ''}"
+                      @click=${() => this.setExerciseGroupFilter(group)}
+                    >${group}</button>
+                  `)}
+                </div>
 
                 ${this.loadingExercises
                   ? html`<div class="muted">Loading exercise library...</div>`
@@ -1200,6 +1274,7 @@ class TrainingApp extends LitElement {
                             <div class="list-item">
                               <div>
                                 <strong>${item.name}</strong>
+                                ${this.renderMuscleGroupChips(item.muscleGroups)}
                                 <div class="muted">
                                   Source: ${Array.isArray(item.sources) && item.sources.length > 0
                                     ? item.sources.join(', ')
@@ -1213,7 +1288,8 @@ class TrainingApp extends LitElement {
                                 @click=${() =>
                                   this.selectExerciseFromSearch(program.id, selectedWorkout.id, {
                                     id: item.id,
-                                    name: item.name
+                                    name: item.name,
+                                    muscleGroups: normalizeMuscleGroups(item.muscleGroups)
                                   })}
                               >Add</wa-button>
                             </div>
@@ -1229,6 +1305,7 @@ class TrainingApp extends LitElement {
                       <div class="list-item">
                         <div>
                           <strong>${item.name}</strong>
+                          ${this.renderMuscleGroupChips(item.muscleGroups)}
                           <div class="muted">
                             Defaults: ${formatNumber(item.defaultSets)} sets
                           </div>
@@ -1324,7 +1401,10 @@ class TrainingApp extends LitElement {
                           html`
                             <div class="exercise-card ${entry.skipped ? 'is-skipped' : ''}">
                               <div class="exercise-card-header">
-                                <h3>${entry.name}</h3>
+                                <div>
+                                  <h3>${entry.name}</h3>
+                                  ${this.renderMuscleGroupChips(entry.muscleGroups)}
+                                </div>
                                 <div class="inline">
                                   <wa-button
                                     size="small"

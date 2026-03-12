@@ -1,4 +1,15 @@
 export const SYNC_SCHEMA_VERSION = 1;
+const UNCATEGORIZED_GROUP = 'Uncategorized';
+const normalizeMuscleGroups = groups => {
+  const normalized = Array.from(
+    new Set(
+      (Array.isArray(groups) ? groups : [])
+        .map(item => String(item || '').trim())
+        .filter(Boolean)
+    )
+  );
+  return normalized.length > 0 ? normalized : [UNCATEGORIZED_GROUP];
+};
 
 export const SYNC_TYPES = {
   PROGRAM: 'program',
@@ -83,6 +94,7 @@ const stampProgramTree = (programs, now, sourceDeviceId) =>
       sourceDeviceId: String(workout.sourceDeviceId || sourceDeviceId || ''),
       exercises: (workout.exercises || []).map(exercise => ({
         ...exercise,
+        muscleGroups: normalizeMuscleGroups(exercise.muscleGroups),
         updatedAt: Number(exercise.updatedAt) || Number(workout.updatedAt) || Number(program.updatedAt) || now,
         deletedAt: exercise.deletedAt || null,
         sourceDeviceId: String(exercise.sourceDeviceId || sourceDeviceId || '')
@@ -173,6 +185,7 @@ const indexLocalRecords = state => {
           defaultSets: Number(exercise.defaultSets) || 0,
           defaultReps: exercise.defaultReps ?? '',
           defaultWeight: exercise.defaultWeight ?? '',
+          muscleGroups: normalizeMuscleGroups(exercise.muscleGroups),
           order: exerciseOrder,
           updatedAt:
             Number(exercise.updatedAt) ||
@@ -281,6 +294,7 @@ export const syncDocToState = (state, syncDoc) => {
       defaultSets: Number(exercise.defaultSets) || 0,
       defaultReps: exercise.defaultReps ?? '',
       defaultWeight: exercise.defaultWeight ?? '',
+      muscleGroups: normalizeMuscleGroups(exercise.muscleGroups),
       updatedAt: Number(exercise.updatedAt) || Date.now(),
       deletedAt: null,
       sourceDeviceId: String(exercise.sourceDeviceId || ''),

@@ -130,6 +130,32 @@ header p {
   font-size: 1rem;
 }
 
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.muscle-chip {
+  border: 1px solid rgba(94, 234, 212, 0.35);
+  background: rgba(20, 184, 166, 0.14);
+  color: #99f6e4;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+button.muscle-chip {
+  cursor: pointer;
+}
+
+button.muscle-chip.is-selected {
+  background: rgba(20, 184, 166, 0.3);
+  border-color: rgba(153, 246, 228, 0.8);
+}
+
 .exercise-card-header {
   display: flex;
   align-items: center;

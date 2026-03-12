@@ -3,6 +3,17 @@ export const clampNumber = value => {
   const parsed = Number(value);
   return Number.isNaN(parsed) ? '' : parsed;
 };
+const UNCATEGORIZED_GROUP = 'Uncategorized';
+const normalizeMuscleGroups = groups => {
+  const normalized = Array.from(
+    new Set(
+      (Array.isArray(groups) ? groups : [])
+        .map(item => String(item || '').trim())
+        .filter(Boolean)
+    )
+  );
+  return normalized.length > 0 ? normalized : [UNCATEGORIZED_GROUP];
+};
 
 const makeWorkout = (createId, name) => ({
   id: createId(),
@@ -195,7 +206,8 @@ export const addExerciseToWorkoutState = (programs, programId, workoutId, exerci
               defaultSets: exercise.defaultSets || 3,
               defaultReps: '',
               defaultWeight: '',
-              trainingPriority: exercise.trainingPriority || null
+              trainingPriority: exercise.trainingPriority || null,
+              muscleGroups: normalizeMuscleGroups(exercise.muscleGroups)
             }
           ]
         };
@@ -304,6 +316,7 @@ export const startSessionState = (program, workoutId, sessions, createId, dateIS
     return {
       exerciseId: exercise.id,
       name: exercise.name,
+      muscleGroups: normalizeMuscleGroups(exercise.muscleGroups),
       sets: Array.from({ length: setCount }, () => ({
         reps: '',
         weight: '',

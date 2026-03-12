@@ -20,6 +20,7 @@ const EXPORT_SHEETS = {
     'default_sets',
     'default_reps',
     'default_weight',
+    'muscle_groups',
     'order',
     'updated_at',
     'deleted_at',
@@ -79,6 +80,7 @@ const sortByUpdatedAndOrder = values =>
       if (byOrder !== 0) return byOrder;
       return Number(a.updatedAt || 0) - Number(b.updatedAt || 0);
     });
+const serializeArrayField = value => JSON.stringify(Array.isArray(value) ? value : []);
 
 const toTabularRows = syncDoc => {
   const records = syncDoc?.records || {};
@@ -148,6 +150,7 @@ const toTabularRows = syncDoc => {
       item.defaultSets ?? '',
       item.defaultReps ?? '',
       item.defaultWeight ?? '',
+      serializeArrayField(item.muscleGroups),
       item.order || 0,
       item.updatedAt || 0,
       item.deletedAt || '',

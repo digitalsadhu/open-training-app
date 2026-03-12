@@ -17,7 +17,14 @@ const baseState = () => ({
         {
           id: 'w1',
           name: 'Workout A',
-          exercises: [{ id: 'e1', name: 'Bench', defaultSets: 3, defaultReps: '', defaultWeight: '' }]
+          exercises: [{
+            id: 'e1',
+            name: 'Bench',
+            defaultSets: 3,
+            defaultReps: '',
+            defaultWeight: '',
+            muscleGroups: ['Chest', 'Arms']
+          }]
         }
       ]
     }
@@ -61,4 +68,11 @@ test('syncDocToState hides deleted records from arrays', () => {
   const merged = syncDocToState(state, doc);
   assert.equal(merged.programs.length, 0);
   assert.ok(merged.sync.tombstones.program.p1);
+});
+
+test('sync round trip preserves workout exercise muscle groups', () => {
+  const migrated = migrateStateForSync(baseState(), 1_000);
+  const doc = stateToSyncDoc(migrated, migrated.sync.deviceId, 1_100);
+  const merged = syncDocToState(migrated, doc);
+  assert.deepEqual(merged.programs[0].workouts[0].exercises[0].muscleGroups, ['Chest', 'Arms']);
 });

@@ -199,6 +199,22 @@ test('google adapter push writes readable export tabs', async () => {
       ...baseDoc.records,
       program: {
         p1: { id: 'p1', name: 'Program', notes: '', createdAt: 1, order: 0, updatedAt: 100, deletedAt: null, sourceDeviceId: 'dev' }
+      },
+      workoutExercise: {
+        'w1:e1': {
+          id: 'w1:e1',
+          workoutId: 'w1',
+          exerciseId: 'e1',
+          name: 'Bench Press',
+          defaultSets: 3,
+          defaultReps: '',
+          defaultWeight: '',
+          muscleGroups: ['Chest', 'Arms'],
+          order: 0,
+          updatedAt: 100,
+          deletedAt: null,
+          sourceDeviceId: 'dev'
+        }
       }
     }
   };
@@ -232,6 +248,10 @@ test('google adapter push writes readable export tabs', async () => {
   const exportWrite = calls.find(call => call.method === 'PUT' && call.url.includes("'programs'!A1"));
   assert.ok(exportWrite, 'expected export write to programs tab');
   assert.match(exportWrite.body, /Program/);
+  const workoutExerciseWrite = calls.find(call => call.method === 'PUT' && call.url.includes("'workout_exercises'!A1"));
+  assert.ok(workoutExerciseWrite, 'expected export write to workout_exercises tab');
+  assert.match(workoutExerciseWrite.body, /muscle_groups/);
+  assert.match(workoutExerciseWrite.body, /Chest/);
 });
 
 test('google adapter push throws conflict on revision mismatch', async () => {
