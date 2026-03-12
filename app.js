@@ -39,6 +39,7 @@ import {
 } from './state.js';
 
 const STORAGE_KEY = 'training-app:v1';
+const CLEAR_DATA_FLASH_KEY = 'training-app:flash:cleared';
 const EXERCISE_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
 const DEFAULT_SYNC_SHEET_TAB = '__training_sync';
 const DEFAULT_SYNC_DOC_ID = 'default';
@@ -244,6 +245,7 @@ class TrainingApp extends LitElement {
     historyExerciseId: { state: true },
     historyExerciseName: { state: true },
     saveValidationError: { state: true },
+    clearDataNotice: { state: true },
     activeTab: { state: true },
     clearDataDialogOpen: { state: true },
     syncState: { state: true },
@@ -310,8 +312,17 @@ class TrainingApp extends LitElement {
     this.historyExerciseId = '';
     this.historyExerciseName = '';
     this.saveValidationError = '';
+    this.clearDataNotice = '';
     this.activeTab = this.programs.length > 0 ? 'train' : 'programs';
     this.clearDataDialogOpen = false;
+    try {
+      if (globalThis.sessionStorage?.getItem(CLEAR_DATA_FLASH_KEY) === '1') {
+        this.clearDataNotice = 'All local data was cleared.';
+        globalThis.sessionStorage.removeItem(CLEAR_DATA_FLASH_KEY);
+      }
+    } catch {
+      // Ignore storage access failures.
+    }
   }
 
   connectedCallback() {
@@ -828,6 +839,11 @@ class TrainingApp extends LitElement {
     if (this.autoSyncTimer) {
       clearTimeout(this.autoSyncTimer);
       this.autoSyncTimer = 0;
+    }
+    try {
+      globalThis.sessionStorage?.setItem(CLEAR_DATA_FLASH_KEY, '1');
+    } catch {
+      // Ignore storage access failures.
     }
     try {
       globalThis.location?.reload();
@@ -1857,6 +1873,23 @@ class TrainingApp extends LitElement {
           </div>
           <div class="badge">PWA-ready</div>
         </header>
+        ${this.clearDataNotice
+          ? html`
+              <wa-callout variant="success" class="flash-callout">
+                <div class="flash-callout-row">
+                  <span>${this.clearDataNotice}</span>
+                  <button
+                    class="flash-dismiss"
+                    type="button"
+                    aria-label="Dismiss notice"
+                    @click=${() => {
+                      this.clearDataNotice = '';
+                    }}
+                  ><span class="flash-dismiss-glyph">×</span></button>
+                </div>
+              </wa-callout>
+            `
+          : html``}
 
         <wa-tab-group
           @wa-tab-show=${event => {

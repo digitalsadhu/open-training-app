@@ -260,6 +260,41 @@ button.muscle-chip.is-selected {
   font-size: 0.9rem;
 }
 
+.flash-callout {
+  margin-bottom: 16px;
+}
+
+.flash-callout-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.flash-dismiss {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.45);
+  color: var(--text);
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.flash-dismiss-glyph {
+  display: block;
+  font-size: 1.1rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
 footer {
   margin-top: 18px;
   color: var(--muted);
