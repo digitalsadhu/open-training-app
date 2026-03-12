@@ -799,13 +799,41 @@ class TrainingApp extends LitElement {
 
   closeClearDataDialog() {
     this.clearDataDialogOpen = false;
+    const dialog = this.renderRoot.querySelector('#clear-data-dialog');
+    if (!dialog || !dialog.open) return;
+    if (typeof dialog.hide === 'function') {
+      dialog.hide();
+    }
+    dialog.open = false;
+    dialog.removeAttribute('open');
   }
 
-  clearAllData() {
+  async clearAllData() {
+    const dialog = this.renderRoot.querySelector('#clear-data-dialog');
+    if (dialog?.open && typeof dialog.hide === 'function') {
+      await new Promise(resolve => {
+        let resolved = false;
+        const finalize = () => {
+          if (resolved) return;
+          resolved = true;
+          resolve();
+        };
+        dialog.addEventListener('wa-after-hide', finalize, { once: true });
+        dialog.hide();
+        setTimeout(finalize, 500);
+      });
+    }
+    this.clearDataDialogOpen = false;
     localStorage.removeItem(STORAGE_KEY);
     if (this.autoSyncTimer) {
       clearTimeout(this.autoSyncTimer);
       this.autoSyncTimer = 0;
+    }
+    try {
+      globalThis.location?.reload();
+      return;
+    } catch {
+      // Fall back to in-memory reset if reload is unavailable.
     }
     const reset = migrateStateForSync(cloneState(defaultState));
     this.lastPersistedState = cloneState(reset);
@@ -818,7 +846,6 @@ class TrainingApp extends LitElement {
     this.historyExerciseName = '';
     this.saveValidationError = '';
     this.activeTab = 'programs';
-    this.clearDataDialogOpen = false;
   }
 
   startSession(programId, workoutId) {
@@ -1804,9 +1831,9 @@ class TrainingApp extends LitElement {
       </wa-dialog>
 
       <wa-dialog
+        id="clear-data-dialog"
         label="Clear all local data"
         ?open=${this.clearDataDialogOpen}
-        @wa-after-hide=${() => this.closeClearDataDialog()}
       >
         <div class="stack">
           <wa-callout variant="warning">
@@ -1839,13 +1866,13 @@ class TrainingApp extends LitElement {
         >
           <wa-tab slot="nav" panel="programs" ?active=${this.activeTab === 'programs'}>Programs</wa-tab>
           <wa-tab slot="nav" panel="train" ?active=${this.activeTab === 'train'}>Train</wa-tab>
-          <wa-tab slot="nav" panel="progress">Progress</wa-tab>
-          <wa-tab slot="nav" panel="settings">Settings</wa-tab>
+          <wa-tab slot="nav" panel="progress" ?active=${this.activeTab === 'progress'}>Progress</wa-tab>
+          <wa-tab slot="nav" panel="settings" ?active=${this.activeTab === 'settings'}>Settings</wa-tab>
 
           <wa-tab-panel name="programs" ?active=${this.activeTab === 'programs'}>${this.renderPrograms()}</wa-tab-panel>
           <wa-tab-panel name="train" ?active=${this.activeTab === 'train'}>${this.renderTraining()}</wa-tab-panel>
-          <wa-tab-panel name="progress">${this.renderProgress()}</wa-tab-panel>
-          <wa-tab-panel name="settings">${this.renderSync()}</wa-tab-panel>
+          <wa-tab-panel name="progress" ?active=${this.activeTab === 'progress'}>${this.renderProgress()}</wa-tab-panel>
+          <wa-tab-panel name="settings" ?active=${this.activeTab === 'settings'}>${this.renderSync()}</wa-tab-panel>
         </wa-tab-group>
 
         <footer>
