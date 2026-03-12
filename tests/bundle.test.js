@@ -47,21 +47,31 @@ test('bundle URLs resolve and imports are not bare', async () => {
   const webawesomeCss = links.filter(link => link.includes('@awesome.me/webawesome'));
   assert.ok(webawesomeCss.length > 0, 'Expected Web Awesome CSS links in index.html');
   webawesomeCss.forEach(link => {
-    assert.ok(link.includes('/dist-cdn/'), `Expected dist-cdn path for Web Awesome CSS: ${link}`);
+    assert.ok(
+      link.startsWith('https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/'),
+      `Expected pinned jsDelivr path for Web Awesome CSS: ${link}`
+    );
+    assert.ok(!link.includes('@latest'), `Expected pinned version, found @latest: ${link}`);
   });
 
   const webawesomeImports = imports.filter(link => link.includes('@awesome.me/webawesome'));
   webawesomeImports.forEach(link => {
-    assert.ok(link.includes('/dist-cdn/'), `Expected dist-cdn path for Web Awesome JS: ${link}`);
+    assert.ok(
+      link.startsWith('https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/'),
+      `Expected pinned jsDelivr path for Web Awesome JS: ${link}`
+    );
+    assert.ok(!link.includes('@latest'), `Expected pinned version, found @latest: ${link}`);
   });
 
-  const externalUrls = new Set([
-    ...webawesomeCss,
-    ...webawesomeImports,
-    ...imports.filter(link => link.startsWith('https://'))
-  ]);
+  const externalLinks = links.filter(link => link.startsWith('http://') || link.startsWith('https://'));
+  const externalImports = imports.filter(link => link.startsWith('http://') || link.startsWith('https://'));
 
-  externalUrls.forEach(url => {
-    assert.ok(url.startsWith('https://'), `Expected https URL: ${url}`);
+  externalLinks.forEach(link => {
+    assert.ok(link.startsWith('https://'), `Expected HTTPS link: ${link}`);
+    assert.ok(!link.includes('@latest'), `Expected pinned version, found @latest: ${link}`);
+  });
+  externalImports.forEach(link => {
+    assert.ok(link.startsWith('https://'), `Expected HTTPS import: ${link}`);
+    assert.ok(!link.includes('@latest'), `Expected pinned version, found @latest: ${link}`);
   });
 });

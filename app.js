@@ -1,15 +1,15 @@
 import { LitElement, html, css } from 'https://cdn.jsdelivr.net/npm/lit@3.2.0/+esm';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/button/button.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/callout/callout.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/input/input.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/select/select.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/option/option.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/textarea/textarea.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/tab-group/tab-group.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/tab/tab.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/tab-panel/tab-panel.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/dialog/dialog.js';
-import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@latest/dist-cdn/components/icon/icon.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/button/button.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/callout/callout.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/input/input.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/select/select.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/option/option.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/textarea/textarea.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/tab-group/tab-group.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/tab/tab.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/tab-panel/tab-panel.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/dialog/dialog.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/icon/icon.js';
 import { fetchExercises, getEnglishLanguageId } from './data.js';
 import {
   SyncRegistry,
@@ -29,6 +29,7 @@ import {
   createProgramState,
   lastEntryForExercise,
   logDraftSetState,
+  moveExerciseInWorkoutState,
   removeDraftSetState,
   removeExerciseFromWorkoutState,
   removeWorkoutFromProgramState,
@@ -73,7 +74,10 @@ const normalizePrograms = programs =>
         workouts: program.workouts.map(workout => ({
           ...workout,
           name: workout.name || 'Workout',
-          exercises: workout.exercises || []
+          exercises: (workout.exercises || []).map(exercise => ({
+            ...exercise,
+            trainingPriority: exercise.trainingPriority || null
+          }))
         }))
       };
     }
@@ -213,6 +217,8 @@ class TrainingApp extends LitElement {
     historyExerciseId: { state: true },
     historyExerciseName: { state: true },
     saveValidationError: { state: true },
+    activeTab: { state: true },
+    clearDataDialogOpen: { state: true },
     syncState: { state: true },
     syncProviderId: { state: true },
     syncNameInput: { state: true },
@@ -276,6 +282,8 @@ class TrainingApp extends LitElement {
     this.historyExerciseId = '';
     this.historyExerciseName = '';
     this.saveValidationError = '';
+    this.activeTab = this.programs.length > 0 ? 'train' : 'programs';
+    this.clearDataDialogOpen = false;
   }
 
   connectedCallback() {
@@ -747,9 +755,41 @@ class TrainingApp extends LitElement {
     this.persist();
   }
 
+  moveExerciseInWorkout(programId, workoutId, exerciseId, direction) {
+    this.programs = moveExerciseInWorkoutState(this.programs, programId, workoutId, exerciseId, direction);
+    this.persist();
+  }
+
   updateWorkoutDefaults(programId, workoutId, exerciseId, field, value) {
     this.programs = updateWorkoutDefaultsState(this.programs, programId, workoutId, exerciseId, field, value);
     this.persist();
+  }
+
+  openClearDataDialog() {
+    this.clearDataDialogOpen = true;
+  }
+
+  closeClearDataDialog() {
+    this.clearDataDialogOpen = false;
+  }
+
+  clearAllData() {
+    localStorage.removeItem(STORAGE_KEY);
+    if (this.autoSyncTimer) {
+      clearTimeout(this.autoSyncTimer);
+      this.autoSyncTimer = 0;
+    }
+    const reset = migrateStateForSync(cloneState(defaultState));
+    this.lastPersistedState = cloneState(reset);
+    this.applyStateSnapshot(reset);
+    this.selectedExercise = '';
+    this.exerciseSearch = '';
+    this.syncFeedback = '';
+    this.historyExerciseId = '';
+    this.historyExerciseName = '';
+    this.saveValidationError = '';
+    this.activeTab = 'programs';
+    this.clearDataDialogOpen = false;
   }
 
   startSession(programId, workoutId) {
@@ -952,7 +992,10 @@ class TrainingApp extends LitElement {
   }
 
   selectExerciseFromSearch(programId, workoutId, exercise) {
-    this.addExerciseToWorkout(programId, workoutId, exercise);
+    this.addExerciseToWorkout(programId, workoutId, {
+      ...exercise,
+      trainingPriority: this.trainingPriority
+    });
     this.exerciseSearch = '';
   }
 
@@ -1181,7 +1224,7 @@ class TrainingApp extends LitElement {
                   : html``}
 
                 <div class="list">
-                  ${(selectedWorkout?.exercises || []).map(item =>
+                  ${(selectedWorkout?.exercises || []).map((item, index, exercises) =>
                     html`
                       <div class="list-item">
                         <div>
@@ -1189,8 +1232,23 @@ class TrainingApp extends LitElement {
                           <div class="muted">
                             Defaults: ${formatNumber(item.defaultSets)} sets
                           </div>
+                          <div class="muted">
+                            Priority: ${item.trainingPriority || `Global (${this.trainingPriority})`}
+                          </div>
                         </div>
                         <div class="inline exercise-defaults-row">
+                          <wa-button
+                            size="small"
+                            ?disabled=${index === 0}
+                            @click=${() => this.moveExerciseInWorkout(program.id, selectedWorkout.id, item.id, 'up')}
+                            aria-label="Move exercise up"
+                          >↑</wa-button>
+                          <wa-button
+                            size="small"
+                            ?disabled=${index === exercises.length - 1}
+                            @click=${() => this.moveExerciseInWorkout(program.id, selectedWorkout.id, item.id, 'down')}
+                            aria-label="Move exercise down"
+                          >↓</wa-button>
                           <wa-input
                             type="number"
                             label="Sets"
@@ -1200,6 +1258,23 @@ class TrainingApp extends LitElement {
                             @input=${event =>
                               this.updateWorkoutDefaults(program.id, selectedWorkout.id, item.id, 'defaultSets', event.target.value)}
                           ></wa-input>
+                          <wa-select
+                            label="Priority"
+                            style="min-width: 170px"
+                            .value=${item.trainingPriority || ''}
+                            @change=${event =>
+                              this.updateWorkoutDefaults(
+                                program.id,
+                                selectedWorkout.id,
+                                item.id,
+                                'trainingPriority',
+                                event.currentTarget.value
+                              )}
+                          >
+                            <wa-option value="">Use global</wa-option>
+                            <wa-option value="strength">Strength</wa-option>
+                            <wa-option value="hypertrophy">Hypertrophy</wa-option>
+                          </wa-select>
                           <wa-button variant="danger" @click=${() => this.removeExerciseFromWorkout(program.id, selectedWorkout.id, item.id)}
                             >Remove</wa-button
                           >
@@ -1597,6 +1672,16 @@ class TrainingApp extends LitElement {
             `}
       </section>
 
+      <section class="section">
+        <h2>Data</h2>
+        <div class="stack">
+          <div class="muted">Delete all local programs, sessions, and sync configuration from this device.</div>
+          <div class="inline">
+            <wa-button variant="danger" @click=${() => this.openClearDataDialog()}>Clear all data</wa-button>
+          </div>
+        </div>
+      </section>
+
       <wa-dialog
         label="Connect Google Sheets"
         ?open=${this.googleConnectDialogOpen}
@@ -1637,6 +1722,21 @@ class TrainingApp extends LitElement {
         </div>
         <wa-button slot="footer" @click=${() => this.closeGoogleConnectDialog()}>Close</wa-button>
       </wa-dialog>
+
+      <wa-dialog
+        label="Clear all local data"
+        ?open=${this.clearDataDialogOpen}
+        @wa-after-hide=${() => this.closeClearDataDialog()}
+      >
+        <div class="stack">
+          <wa-callout variant="warning">
+            This removes all local programs, sessions, and sync settings. This action cannot be undone.
+          </wa-callout>
+          <div class="muted">Connected cloud data is not deleted remotely.</div>
+        </div>
+        <wa-button slot="footer" @click=${() => this.closeClearDataDialog()}>Cancel</wa-button>
+        <wa-button slot="footer" variant="danger" @click=${() => this.clearAllData()}>Clear data</wa-button>
+      </wa-dialog>
     `;
   }
 
@@ -1651,14 +1751,19 @@ class TrainingApp extends LitElement {
           <div class="badge">PWA-ready</div>
         </header>
 
-        <wa-tab-group>
-          <wa-tab slot="nav" panel="programs">Programs</wa-tab>
-          <wa-tab slot="nav" panel="train">Train</wa-tab>
+        <wa-tab-group
+          @wa-tab-show=${event => {
+            const nextTab = String(event.detail?.name || event.detail?.panel || '').trim();
+            if (nextTab) this.activeTab = nextTab;
+          }}
+        >
+          <wa-tab slot="nav" panel="programs" ?active=${this.activeTab === 'programs'}>Programs</wa-tab>
+          <wa-tab slot="nav" panel="train" ?active=${this.activeTab === 'train'}>Train</wa-tab>
           <wa-tab slot="nav" panel="progress">Progress</wa-tab>
           <wa-tab slot="nav" panel="settings">Settings</wa-tab>
 
-          <wa-tab-panel name="programs">${this.renderPrograms()}</wa-tab-panel>
-          <wa-tab-panel name="train">${this.renderTraining()}</wa-tab-panel>
+          <wa-tab-panel name="programs" ?active=${this.activeTab === 'programs'}>${this.renderPrograms()}</wa-tab-panel>
+          <wa-tab-panel name="train" ?active=${this.activeTab === 'train'}>${this.renderTraining()}</wa-tab-panel>
           <wa-tab-panel name="progress">${this.renderProgress()}</wa-tab-panel>
           <wa-tab-panel name="settings">${this.renderSync()}</wa-tab-panel>
         </wa-tab-group>

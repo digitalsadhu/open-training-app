@@ -27,10 +27,11 @@ export const getRepRangeForPriority = trainingPriority =>
     : { min: 8, max: 12 };
 
 const getProgressionConfig = (exercise, trainingPriority) => {
-  const defaultRange = getRepRangeForPriority(trainingPriority);
+  const effectivePriority = exercise?.trainingPriority || trainingPriority;
+  const defaultRange = getRepRangeForPriority(effectivePriority);
   const repRangeMin = Math.max(1, toNumberOr(exercise?.repRangeMin, defaultRange.min));
   const repRangeMax = Math.max(repRangeMin, toNumberOr(exercise?.repRangeMax, defaultRange.max));
-  const weightStepKg = Math.max(0.25, toNumberOr(exercise?.weightStepKg, trainingPriority === 'strength' ? 2.5 : 1.25));
+  const weightStepKg = Math.max(0.25, toNumberOr(exercise?.weightStepKg, effectivePriority === 'strength' ? 2.5 : 1.25));
   const deloadPercent = Math.min(25, Math.max(2.5, toNumberOr(exercise?.deloadPercent, 7.5)));
   const failStreakForDeload = Math.max(2, toNumberOr(exercise?.failStreakForDeload, 2));
 
@@ -193,7 +194,8 @@ export const addExerciseToWorkoutState = (programs, programId, workoutId, exerci
               name: exercise.name,
               defaultSets: exercise.defaultSets || 3,
               defaultReps: '',
-              defaultWeight: ''
+              defaultWeight: '',
+              trainingPriority: exercise.trainingPriority || null
             }
           ]
         };
@@ -216,6 +218,28 @@ export const removeExerciseFromWorkoutState = (programs, programId, workoutId, e
     };
   });
 
+export const moveExerciseInWorkoutState = (programs, programId, workoutId, exerciseId, direction) =>
+  programs.map(program => {
+    if (program.id !== programId) return program;
+    return {
+      ...program,
+      workouts: program.workouts.map(workout => {
+        if (workout.id !== workoutId) return workout;
+        const fromIndex = workout.exercises.findIndex(item => item.id === exerciseId);
+        if (fromIndex < 0) return workout;
+        const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+        if (toIndex < 0 || toIndex >= workout.exercises.length) return workout;
+        const nextExercises = [...workout.exercises];
+        const [moved] = nextExercises.splice(fromIndex, 1);
+        nextExercises.splice(toIndex, 0, moved);
+        return {
+          ...workout,
+          exercises: nextExercises
+        };
+      })
+    };
+  });
+
 export const updateWorkoutDefaultsState = (programs, programId, workoutId, exerciseId, field, value) =>
   programs.map(program => {
     if (program.id !== programId) return program;
@@ -226,7 +250,15 @@ export const updateWorkoutDefaultsState = (programs, programId, workoutId, exerc
         return {
           ...workout,
           exercises: workout.exercises.map(item =>
-            item.id === exerciseId ? { ...item, [field]: clampNumber(value) } : item
+            item.id === exerciseId
+              ? {
+                  ...item,
+                  [field]:
+                    field === 'trainingPriority'
+                      ? value || null
+                      : clampNumber(value)
+                }
+              : item
           )
         };
       })

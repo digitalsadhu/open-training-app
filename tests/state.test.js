@@ -8,6 +8,7 @@ import {
   createProgramState,
   getRepRangeForPriority,
   logDraftSetState,
+  moveExerciseInWorkoutState,
   removeDraftSetState,
   removeExerciseFromWorkoutState,
   removeWorkoutFromProgramState,
@@ -49,6 +50,46 @@ test('removeExerciseFromWorkoutState removes by id', () => {
   }];
   const next = removeExerciseFromWorkoutState(programs, 'p1', 'w1', 'e1');
   assert.equal(next[0].workouts[0].exercises.length, 0);
+});
+
+test('moveExerciseInWorkoutState reorders exercises up/down with boundaries', () => {
+  const programs = [{
+    id: 'p1',
+    name: 'Program',
+    workouts: [{
+      id: 'w1',
+      name: 'Push',
+      exercises: [
+        { id: 'e1', name: 'Bench' },
+        { id: 'e2', name: 'Press' },
+        { id: 'e3', name: 'Dip' }
+      ]
+    }]
+  }];
+
+  const movedUp = moveExerciseInWorkoutState(programs, 'p1', 'w1', 'e2', 'up');
+  assert.deepEqual(
+    movedUp[0].workouts[0].exercises.map(item => item.id),
+    ['e2', 'e1', 'e3']
+  );
+
+  const movedDown = moveExerciseInWorkoutState(programs, 'p1', 'w1', 'e2', 'down');
+  assert.deepEqual(
+    movedDown[0].workouts[0].exercises.map(item => item.id),
+    ['e1', 'e3', 'e2']
+  );
+
+  const topNoop = moveExerciseInWorkoutState(programs, 'p1', 'w1', 'e1', 'up');
+  assert.deepEqual(
+    topNoop[0].workouts[0].exercises.map(item => item.id),
+    ['e1', 'e2', 'e3']
+  );
+
+  const bottomNoop = moveExerciseInWorkoutState(programs, 'p1', 'w1', 'e3', 'down');
+  assert.deepEqual(
+    bottomNoop[0].workouts[0].exercises.map(item => item.id),
+    ['e1', 'e2', 'e3']
+  );
 });
 
 test('updateWorkoutDefaultsState updates sets', () => {
@@ -128,6 +169,20 @@ test('startSessionState uses lower default rep range for strength priority', () 
   const draft = startSessionState(program, 'w1', [], () => 's1', '2026-02-13', 'strength');
   assert.equal(draft.entries[0].sets[0].targetReps, 3);
   assert.equal(draft.entries[0].sets[0].targetWeight, 50);
+});
+
+test('startSessionState respects per-exercise priority override over global', () => {
+  const program = {
+    id: 'p1',
+    name: 'Program',
+    workouts: [{
+      id: 'w1',
+      name: 'Mixed',
+      exercises: [{ id: 'e1', name: 'Press', defaultSets: 3, defaultWeight: 40, trainingPriority: 'strength' }]
+    }]
+  };
+  const draft = startSessionState(program, 'w1', [], () => 's1', '2026-02-13', 'hypertrophy');
+  assert.equal(draft.entries[0].sets[0].targetReps, 3);
 });
 
 test('draft set mutations adjust entries', () => {
@@ -221,4 +276,28 @@ test('computeProgressionForEntry deloads after fail streak threshold', () => {
 
   assert.equal(result.decision, 'deload');
   assert.equal(result.nextTargetWeight, 90);
+});
+
+test('computeProgressionForEntry uses exercise-level priority override', () => {
+  const result = computeProgressionForEntry({
+    draftEntry: {
+      sets: [
+        { targetReps: 3, targetWeight: 100 },
+        { targetReps: 3, targetWeight: 100 },
+        { targetReps: 3, targetWeight: 100 }
+      ]
+    },
+    loggedSets: [
+      { reps: 6, weight: 100 },
+      { reps: 6, weight: 100 },
+      { reps: 6, weight: 100 }
+    ],
+    exercise: { defaultSets: 3, trainingPriority: 'strength' },
+    previousEntry: null,
+    trainingPriority: 'hypertrophy'
+  });
+
+  assert.equal(result.config.repRangeMin, 3);
+  assert.equal(result.config.repRangeMax, 6);
+  assert.equal(result.decision, 'increase_weight');
 });

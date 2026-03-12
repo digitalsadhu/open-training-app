@@ -1,4 +1,4 @@
-const CACHE_NAME = 'training-app-v3';
+const CACHE_NAME = 'training-app-v5';
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -7,10 +7,30 @@ const CORE_ASSETS = [
   '/manifest.webmanifest',
   '/icons/icon.svg'
 ];
+const CDN_ASSETS = [
+  'https://cdn.jsdelivr.net/npm/lit@3.2.0/+esm',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/styles/webawesome.css',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/styles/themes/default.css',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/styles/utilities/fouce.css',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/button/button.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/callout/callout.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/input/input.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/select/select.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/option/option.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/textarea/textarea.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/tab-group/tab-group.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/tab/tab.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/tab-panel/tab-panel.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/dialog/dialog.js',
+  'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/icon/icon.js'
+];
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
+    caches.open(CACHE_NAME).then(async cache => {
+      await cache.addAll(CORE_ASSETS);
+      await Promise.allSettled(CDN_ASSETS.map(asset => cache.add(asset)));
+    })
   );
   self.skipWaiting();
 });
@@ -29,13 +49,15 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
+  const isSameOrigin = url.origin === self.location.origin;
+  const isKnownCdn = url.origin === 'https://cdn.jsdelivr.net';
+  if (!isSameOrigin && !isKnownCdn) return;
 
   const appShellPaths = new Set(['/', '/index.html', '/app.js', '/styles.css']);
   const isNavigate = request.mode === 'navigate';
   const isAppShell = appShellPaths.has(url.pathname);
 
-  if (isNavigate || isAppShell) {
+  if (isSameOrigin && (isNavigate || isAppShell)) {
     event.respondWith(
       fetch(request)
         .then(response => {
