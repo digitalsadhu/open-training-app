@@ -387,7 +387,7 @@ const normalizeConfig = config => ({
   spreadsheetId: String(config.spreadsheetId || ''),
   sheetName: String(config.sheetName || defaultSheetName),
   docId: String(config.docId || defaultDocId),
-  spreadsheetTitle: String(config.spreadsheetTitle || 'Training App Data')
+  spreadsheetTitle: String(config.spreadsheetTitle || 'Open Training App Data')
 });
 
 const parseErrorBody = async response => {
@@ -667,7 +667,7 @@ export const createGoogleSheetsAdapter = ({
           token
         });
       } catch (error) {
-        throw new Error('Selected sheet is not a valid Training App backup.');
+        throw new Error('Selected sheet is not a valid Open Training App backup.');
       }
 
       const latest = parseSyncRows(rows)
@@ -684,7 +684,7 @@ export const createGoogleSheetsAdapter = ({
         );
 
       if (!latest || !hasRecords) {
-        throw new Error('Selected sheet is not a valid Training App backup.');
+        throw new Error('Selected sheet is not a valid Open Training App backup.');
       }
 
       return {

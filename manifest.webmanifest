@@ -1,6 +1,6 @@
 {
-  "name": "Training App",
-  "short_name": "Training",
+  "name": "Open Training App",
+  "short_name": "Open Training",
   "description": "Plan workouts, track sets, and see progress over time.",
   "start_url": "/index.html",
   "display": "standalone",

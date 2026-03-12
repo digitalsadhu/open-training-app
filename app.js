@@ -588,7 +588,7 @@ class TrainingApp extends LitElement {
     const stamp = new Date().toISOString().slice(0, 10);
     const baseConfig = {
       clientId: this.googleClientId,
-      spreadsheetTitle: `Training App Data (${stamp})`,
+      spreadsheetTitle: `Open Training App Data (${stamp})`,
       sheetName: DEFAULT_SYNC_SHEET_TAB,
       docId: DEFAULT_SYNC_DOC_ID
     };
@@ -1825,7 +1825,7 @@ class TrainingApp extends LitElement {
       <main>
         <header>
           <div>
-            <h1>Training App</h1>
+            <h1>Open Training App</h1>
             <p>Build programs, log sets, and carry your last performance into every session.</p>
           </div>
           <div class="badge">PWA-ready</div>

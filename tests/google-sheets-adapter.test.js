@@ -157,7 +157,7 @@ test('google adapter assertBackupExists rejects invalid sheet', async () => {
       sheetName: '__training_sync',
       docId: 'default'
     }),
-    /not a valid Training App backup/
+    /not a valid Open Training App backup/
   );
 });
 
