@@ -40,6 +40,7 @@ import {
 
 const STORAGE_KEY = 'training-app:v1';
 const CLEAR_DATA_FLASH_KEY = 'training-app:flash:cleared';
+const INSTALL_HINT_KEY = 'training-app:install-hint';
 const EXERCISE_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
 const DEFAULT_SYNC_SHEET_TAB = '__training_sync';
 const DEFAULT_SYNC_DOC_ID = 'default';
@@ -246,6 +247,10 @@ class TrainingApp extends LitElement {
     historyExerciseName: { state: true },
     saveValidationError: { state: true },
     clearDataNotice: { state: true },
+    installNotice: { state: true },
+    isStandalone: { state: true },
+    installHinted: { state: true },
+    installPromptAvailable: { state: true },
     activeTab: { state: true },
     clearDataDialogOpen: { state: true },
     syncState: { state: true },
@@ -313,6 +318,31 @@ class TrainingApp extends LitElement {
     this.historyExerciseName = '';
     this.saveValidationError = '';
     this.clearDataNotice = '';
+    this.installNotice = '';
+    this.isStandalone = this.detectStandalone();
+    this.installHinted = false;
+    this.installPromptAvailable = false;
+    this.deferredInstallPrompt = null;
+    this.onBeforeInstallPrompt = event => {
+      event.preventDefault();
+      this.deferredInstallPrompt = event;
+      this.installPromptAvailable = true;
+    };
+    this.onAppInstalled = () => {
+      this.deferredInstallPrompt = null;
+      this.installPromptAvailable = false;
+      this.isStandalone = this.detectStandalone();
+      this.installHinted = true;
+      try {
+        globalThis.localStorage?.setItem(INSTALL_HINT_KEY, '1');
+      } catch {
+        // Ignore storage failures.
+      }
+      this.installNotice = 'Open Training App was installed. Open it from your app launcher or home screen.';
+    };
+    this.onDisplayModeChange = () => {
+      this.isStandalone = this.detectStandalone();
+    };
     this.activeTab = this.programs.length > 0 ? 'train' : 'programs';
     this.clearDataDialogOpen = false;
     try {
@@ -323,11 +353,19 @@ class TrainingApp extends LitElement {
     } catch {
       // Ignore storage access failures.
     }
+    try {
+      this.installHinted = globalThis.localStorage?.getItem(INSTALL_HINT_KEY) === '1';
+    } catch {
+      this.installHinted = false;
+    }
   }
 
   connectedCallback() {
     super.connectedCallback();
     console.info('[training-app] connected');
+    globalThis.addEventListener('beforeinstallprompt', this.onBeforeInstallPrompt);
+    globalThis.addEventListener('appinstalled', this.onAppInstalled);
+    globalThis.matchMedia?.('(display-mode: standalone)')?.addEventListener?.('change', this.onDisplayModeChange);
     this.installMobileZoomGuard();
     this.loadExerciseLibrary();
     if ('serviceWorker' in navigator) {
@@ -335,6 +373,94 @@ class TrainingApp extends LitElement {
         console.warn('Service worker registration failed', error);
       });
     }
+  }
+
+  disconnectedCallback() {
+    globalThis.removeEventListener('beforeinstallprompt', this.onBeforeInstallPrompt);
+    globalThis.removeEventListener('appinstalled', this.onAppInstalled);
+    globalThis.matchMedia?.('(display-mode: standalone)')?.removeEventListener?.('change', this.onDisplayModeChange);
+    super.disconnectedCallback();
+  }
+
+  detectStandalone() {
+    return Boolean(
+      globalThis.matchMedia?.('(display-mode: standalone)')?.matches ||
+      globalThis.navigator?.standalone === true
+    );
+  }
+
+  getInstallInstructions() {
+    const ua = String(globalThis.navigator?.userAgent || '').toLowerCase();
+    const isIOS = ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod');
+    const isAndroid = ua.includes('android');
+    const isSamsungInternet = ua.includes('samsungbrowser');
+    const isEdge = ua.includes('edg/');
+    const isFirefox = ua.includes('firefox/') || ua.includes('fxios/');
+    const isChrome = (ua.includes('chrome/') || ua.includes('crios/')) && !isEdge;
+    const isSafari = ua.includes('safari/') && !isChrome && !isEdge && !isFirefox;
+
+    if (isIOS) {
+      if (ua.includes('crios/')) {
+        return 'In Chrome on iOS, tap Share and choose "Add to Home Screen".';
+      }
+      if (ua.includes('fxios/')) {
+        return 'In Firefox on iOS, tap Share and choose "Add to Home Screen".';
+      }
+      if (ua.includes('edgios/')) {
+        return 'In Edge on iOS, tap Share and choose "Add to Home Screen".';
+      }
+      return 'In Safari, tap Share and choose "Add to Home Screen".';
+    }
+
+    if (isAndroid) {
+      if (isSamsungInternet) {
+        return 'In Samsung Internet, open the menu and choose "Add page to" -> "Home screen".';
+      }
+      if (isEdge) {
+        return 'In Edge, open the menu and choose "Apps" -> "Install this site as an app".';
+      }
+      if (isFirefox) {
+        return 'In Firefox, open the menu and choose "Install" or "Add to Home screen".';
+      }
+      if (isChrome) {
+        return 'In Chrome, open the menu and choose "Install app" or "Add to Home screen".';
+      }
+      return 'On Android, open your browser menu and choose "Install app" or "Add to Home screen".';
+    }
+
+    if (isEdge) {
+      return 'In Edge, open the menu and choose "Apps" -> "Install this site as an app".';
+    }
+    if (isChrome) {
+      return 'In Chrome, use the install icon in the address bar or open the menu and choose "Install Open Training App".';
+    }
+    if (isFirefox) {
+      return 'In Firefox, open the menu and choose "Install" (or pin the page to your desktop/home if install is unavailable).';
+    }
+    if (isSafari) {
+      return 'In Safari, choose File -> "Add to Dock" (or Share -> "Add to Home Screen" on mobile).';
+    }
+    return 'Use your browser menu and choose "Install app" or "Add to Home screen".';
+  }
+
+  async installApp() {
+    if (this.isStandalone || this.installHinted) return;
+    if (this.deferredInstallPrompt) {
+      const promptEvent = this.deferredInstallPrompt;
+      this.deferredInstallPrompt = null;
+      this.installPromptAvailable = false;
+      try {
+        await promptEvent.prompt();
+        const result = await promptEvent.userChoice;
+        if (result?.outcome !== 'accepted') {
+          this.installNotice = this.getInstallInstructions();
+        }
+      } catch {
+        this.installNotice = this.getInstallInstructions();
+      }
+      return;
+    }
+    this.installNotice = this.getInstallInstructions();
   }
 
   installMobileZoomGuard() {
@@ -1860,6 +1986,7 @@ class TrainingApp extends LitElement {
         <wa-button slot="footer" @click=${() => this.closeClearDataDialog()}>Cancel</wa-button>
         <wa-button slot="footer" variant="danger" @click=${() => this.clearAllData()}>Clear data</wa-button>
       </wa-dialog>
+
     `;
   }
 
@@ -1871,7 +1998,9 @@ class TrainingApp extends LitElement {
             <h1>Open Training App</h1>
             <p>Build programs, log sets, and carry your last performance into every session.</p>
           </div>
-          <div class="badge">PWA-ready</div>
+          ${this.isStandalone || this.installHinted
+            ? html`<div class="badge">Installed</div>`
+            : html`<button class="badge install-badge" type="button" @click=${() => this.installApp()}>Install</button>`}
         </header>
         ${this.clearDataNotice
           ? html`
@@ -1884,6 +2013,23 @@ class TrainingApp extends LitElement {
                     aria-label="Dismiss notice"
                     @click=${() => {
                       this.clearDataNotice = '';
+                    }}
+                  ><span class="flash-dismiss-glyph">×</span></button>
+                </div>
+              </wa-callout>
+            `
+          : html``}
+        ${this.installNotice
+          ? html`
+              <wa-callout class="flash-callout">
+                <div class="flash-callout-row">
+                  <span>${this.installNotice}</span>
+                  <button
+                    class="flash-dismiss"
+                    type="button"
+                    aria-label="Dismiss install notice"
+                    @click=${() => {
+                      this.installNotice = '';
                     }}
                   ><span class="flash-dismiss-glyph">×</span></button>
                 </div>
