@@ -47,6 +47,17 @@ test('mergeSyncDocs keeps newer tombstone', () => {
   assert.equal(merged.records.program.p1.deletedAt, 25);
 });
 
+test('mergeSyncDocs keeps tombstone even if non-deleted record has newer timestamp', () => {
+  const local = emptyDoc();
+  const remote = emptyDoc();
+
+  local.records.workout.w1 = { id: 'w1', programId: 'p1', updatedAt: 20, deletedAt: 20 };
+  remote.records.workout.w1 = { id: 'w1', programId: 'p1', name: 'Remote', updatedAt: 50, deletedAt: null };
+
+  const merged = mergeSyncDocs(local, remote, 60);
+  assert.equal(merged.records.workout.w1.deletedAt, 20);
+});
+
 test('mergeSyncDocs is deterministic across run order', () => {
   const a = emptyDoc();
   const b = emptyDoc();

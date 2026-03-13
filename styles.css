@@ -178,24 +178,24 @@ header p {
 }
 
 .exercise-defaults-row {
-  align-items: flex-end;
-  flex-wrap: nowrap;
-  width: 100%;
+  display: grid;
+  grid-template-columns: 30px 30px 84px minmax(150px, 170px) 30px;
+  align-items: end;
+  justify-content: end;
+  gap: 8px;
+  width: auto;
 }
 
 .exercise-defaults-row wa-input,
 .exercise-defaults-row wa-select,
 .exercise-defaults-row wa-button {
-  align-self: flex-end;
+  align-self: end;
+  margin: 0;
 }
 
 .exercise-defaults-row .delete-icon-btn {
-  align-self: flex-end;
-  margin-bottom: 2px;
-}
-
-.exercise-defaults-row wa-select {
-  align-self: flex-end;
+  align-self: end;
+  margin-bottom: 0;
 }
 
 .exercise-defaults-row .delete-icon-btn::part(base) {
@@ -212,11 +212,13 @@ header p {
 
 @media (max-width: 860px) {
   .exercise-defaults-row {
-    flex-wrap: wrap;
+    grid-template-columns: 30px 30px minmax(90px, 1fr);
+    justify-content: stretch;
+    width: 100%;
   }
 
-  .exercise-defaults-row .delete-icon-btn {
-    margin-bottom: 0;
+  .exercise-defaults-row wa-select {
+    min-width: 0 !important;
   }
 }
 

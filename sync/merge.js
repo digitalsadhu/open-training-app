@@ -13,13 +13,15 @@ const pickByTimestamp = (localRecord, remoteRecord) => {
   const remoteDeleted = toNumber(remoteRecord.deletedAt);
 
   if (localDeleted || remoteDeleted) {
+    // Tombstones are authoritative; once a record is deleted, do not resurrect
+    // it from a non-deleted peer record during sync merges.
+    if (localDeleted && !remoteDeleted) return localRecord;
+    if (remoteDeleted && !localDeleted) return remoteRecord;
+
     if (localDeleted && remoteDeleted) {
       if (remoteUpdated > localUpdated) return remoteRecord;
       return localRecord;
     }
-
-    if (localDeleted && localUpdated >= remoteUpdated) return localRecord;
-    if (remoteDeleted && remoteUpdated >= localUpdated) return remoteRecord;
   }
 
   if (remoteUpdated > localUpdated) return remoteRecord;

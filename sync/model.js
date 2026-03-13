@@ -371,6 +371,18 @@ export const finalizeLocalStateForSync = (nextState, previousState, now = Date.n
 
     Object.entries(currRecords).forEach(([id, current]) => {
       const previous = prevRecords[id];
+      const isCurrentTombstone = Boolean(Number(current?.deletedAt) || 0);
+
+      if (isCurrentTombstone) {
+        currRecords[id] = {
+          ...current,
+          updatedAt: Number(current.updatedAt) || Number(current.deletedAt) || now,
+          deletedAt: Number(current.deletedAt) || Number(current.updatedAt) || now,
+          sourceDeviceId: current.sourceDeviceId || previous?.sourceDeviceId || sourceDeviceId
+        };
+        return;
+      }
+
       if (!previous) {
         currRecords[id] = {
           ...current,

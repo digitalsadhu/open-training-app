@@ -4,6 +4,7 @@ import { SyncRegistry } from '../sync/registry.js';
 import { runSyncForTargets } from '../sync/engine.js';
 import { SyncConflictError } from '../sync/errors.js';
 import { createDefaultSyncState, migrateStateForSync } from '../sync/model.js';
+import { mergeSyncDocs } from '../sync/merge.js';
 
 const baseState = () =>
   migrateStateForSync({
@@ -76,4 +77,31 @@ test('runSyncForTargets retries once on conflict', async () => {
   const run = await runSyncForTargets({ state, registry });
   assert.equal(run.results[0].ok, true);
   assert.equal(pushCalls, 2);
+});
+
+test('mergeSyncDocs keeps local deletion when remote still has record', () => {
+  const local = {
+    version: 1,
+    updatedAt: 0,
+    sourceDeviceId: 'local',
+    records: {
+      program: { p1: { id: 'p1', updatedAt: 10, deletedAt: null } },
+      workout: { w1: { id: 'w1', programId: 'p1', updatedAt: 30, deletedAt: 30 } },
+      workoutExercise: {},
+      session: {}
+    }
+  };
+  const remote = {
+    version: 1,
+    updatedAt: 0,
+    sourceDeviceId: 'remote',
+    records: {
+      program: { p1: { id: 'p1', updatedAt: 20, deletedAt: null } },
+      workout: { w1: { id: 'w1', programId: 'p1', name: 'Resurrected', updatedAt: 50, deletedAt: null } },
+      workoutExercise: {},
+      session: {}
+    }
+  };
+  const merged = mergeSyncDocs(local, remote, 60);
+  assert.equal(merged.records.workout.w1.deletedAt, 30);
 });

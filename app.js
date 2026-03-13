@@ -78,6 +78,54 @@ const normalizeExerciseLibraryItem = item => ({
   }
 });
 
+const applyTombstoneGuards = state => {
+  const tombstones = state?.sync?.tombstones || {};
+  const deletedProgramIds = new Set(Object.keys(tombstones.program || {}));
+  const deletedWorkoutIds = new Set(Object.keys(tombstones.workout || {}));
+  const deletedWorkoutExerciseIds = new Set(Object.keys(tombstones.workoutExercise || {}));
+  const deletedSessionIds = new Set(Object.keys(tombstones.session || {}));
+
+  const programs = (state.programs || [])
+    .filter(program => !deletedProgramIds.has(program.id))
+    .map(program => ({
+      ...program,
+      workouts: (program.workouts || [])
+        .filter(workout => !deletedWorkoutIds.has(workout.id))
+        .map(workout => ({
+          ...workout,
+          exercises: (workout.exercises || []).filter(
+            exercise => !deletedWorkoutExerciseIds.has(`${workout.id}:${exercise.id}`)
+          )
+        }))
+    }));
+
+  const sessions = (state.sessions || []).filter(session => !deletedSessionIds.has(session.id));
+
+  return {
+    ...state,
+    programs,
+    sessions
+  };
+};
+
+const TOMBSTONE_TYPES = ['program', 'workout', 'workoutExercise', 'session'];
+const mergeTombstoneRecords = (current = {}, incoming = {}) => {
+  const merged = {};
+  for (const type of TOMBSTONE_TYPES) {
+    const currentType = current?.[type] || {};
+    const incomingType = incoming?.[type] || {};
+    const nextType = { ...currentType };
+    for (const [id, record] of Object.entries(incomingType)) {
+      const existing = nextType[id];
+      if (!existing || Number(record?.updatedAt || 0) >= Number(existing?.updatedAt || 0)) {
+        nextType[id] = record;
+      }
+    }
+    merged[type] = nextType;
+  }
+  return merged;
+};
+
 const defaultState = {
   programs: [],
   sessions: [],
@@ -109,22 +157,9 @@ const normalizePrograms = programs =>
       };
     }
 
-    const migratedExercises = Array.isArray(program.exercises) ? program.exercises : [];
     return {
       ...program,
-      workouts: [
-        {
-          id:
-            globalThis.crypto?.randomUUID?.() ||
-            `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
-          name: 'Workout A',
-          exercises: migratedExercises.map(exercise => ({
-            ...exercise,
-            trainingPriority: exercise.trainingPriority || null,
-            muscleGroups: normalizeMuscleGroups(exercise.muscleGroups)
-          }))
-        }
-      ]
+      workouts: []
     };
   });
 
@@ -286,6 +321,7 @@ class TrainingApp extends LitElement {
     this.syncRegistry.register(createGoogleSheetsAdapter());
     this.autoSyncTimer = 0;
     this.lastPersistedState = cloneState(saved);
+    this.localRevision = 0;
     this.programs = saved.programs;
     this.sessions = saved.sessions;
     this.selectedProgramId = saved.selectedProgramId || this.programs[0]?.id || '';
@@ -565,7 +601,7 @@ class TrainingApp extends LitElement {
   }
 
   applyStateSnapshot(state) {
-    const aligned = alignSelections(migrateStateForSync(state));
+    const aligned = alignSelections(applyTombstoneGuards(migrateStateForSync(state)));
     this.programs = aligned.programs;
     this.sessions = aligned.sessions;
     this.selectedProgramId = aligned.selectedProgramId;
@@ -584,6 +620,7 @@ class TrainingApp extends LitElement {
     this.applyStateSnapshot(finalized);
     saveState(finalized);
     this.lastPersistedState = cloneState(finalized);
+    this.localRevision += 1;
     if (triggerSync && this.syncState?.autoSyncEnabled) {
       this.scheduleAutoSync();
     }
@@ -657,6 +694,7 @@ class TrainingApp extends LitElement {
     if (this.syncState?.isSyncing) return;
     this.syncState = { ...this.syncState, isSyncing: true };
     this.persist({ triggerSync: false });
+    const syncStartRevision = this.localRevision;
 
     const run = await runSyncForTargets({
       state: this.buildStateSnapshot(),
@@ -666,11 +704,32 @@ class TrainingApp extends LitElement {
     });
 
     const currentState = alignSelections(migrateStateForSync(this.buildStateSnapshot()));
-    const sourceDeviceId = currentState.sync?.deviceId || run.state.sync?.deviceId || '';
-    const localDoc = stateToSyncDoc(currentState, sourceDeviceId, Date.now());
-    const syncedDoc = stateToSyncDoc(run.state, sourceDeviceId, Date.now());
-    const reconciledDoc = mergeSyncDocs(localDoc, syncedDoc, Date.now());
-    const reconciledState = alignSelections(syncDocToState(run.state, reconciledDoc));
+    let reconciledState;
+    if (this.localRevision !== syncStartRevision) {
+      reconciledState = alignSelections(
+        applyTombstoneGuards({
+          ...currentState,
+          sync: {
+            ...(run.state.sync || {}),
+            ...(currentState.sync || {}),
+            targets: run.state.sync?.targets || currentState.sync?.targets || [],
+            tombstones: mergeTombstoneRecords(
+              currentState.sync?.tombstones,
+              run.state.sync?.tombstones
+            ),
+            isSyncing: false
+          }
+        })
+      );
+    } else {
+      const sourceDeviceId = currentState.sync?.deviceId || run.state.sync?.deviceId || '';
+      const localDoc = stateToSyncDoc(currentState, sourceDeviceId, Date.now());
+      const syncedDoc = stateToSyncDoc(run.state, sourceDeviceId, Date.now());
+      const reconciledDoc = mergeSyncDocs(localDoc, syncedDoc, Date.now());
+      reconciledState = alignSelections(
+        applyTombstoneGuards(syncDocToState(run.state, reconciledDoc))
+      );
+    }
 
     this.applyStateSnapshot(reconciledState);
     saveState(reconciledState);
@@ -920,6 +979,24 @@ class TrainingApp extends LitElement {
   removeWorkout(programId, workoutId) {
     const program = this.programs.find(item => item.id === programId);
     if (!program) return;
+    const deletedAt = Date.now();
+    const sourceDeviceId = String(this.syncState?.deviceId || '');
+    const workoutTombstone = {
+      id: workoutId,
+      type: 'workout',
+      programId,
+      updatedAt: deletedAt,
+      deletedAt,
+      sourceDeviceId
+    };
+    this.syncState = {
+      ...this.syncState,
+      tombstones: mergeTombstoneRecords(this.syncState?.tombstones, {
+        workout: {
+          [workoutId]: workoutTombstone
+        }
+      })
+    };
     this.programs = removeWorkoutFromProgramState(this.programs, programId, workoutId);
     if (this.selectedWorkoutId === workoutId) {
       const updatedProgram = this.programs.find(item => item.id === programId);
