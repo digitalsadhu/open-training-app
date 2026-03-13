@@ -19,8 +19,11 @@ import {
   createDefaultSyncState,
   createGoogleSheetsAdapter,
   finalizeLocalStateForSync,
+  mergeSyncDocs,
   migrateStateForSync,
-  runSyncForTargets
+  runSyncForTargets,
+  stateToSyncDoc,
+  syncDocToState
 } from './sync/index.js';
 import {
   addDraftSetState,
@@ -662,9 +665,16 @@ class TrainingApp extends LitElement {
       now: Date.now()
     });
 
-    this.applyStateSnapshot(run.state);
-    saveState(run.state);
-    this.lastPersistedState = cloneState(run.state);
+    const currentState = alignSelections(migrateStateForSync(this.buildStateSnapshot()));
+    const sourceDeviceId = currentState.sync?.deviceId || run.state.sync?.deviceId || '';
+    const localDoc = stateToSyncDoc(currentState, sourceDeviceId, Date.now());
+    const syncedDoc = stateToSyncDoc(run.state, sourceDeviceId, Date.now());
+    const reconciledDoc = mergeSyncDocs(localDoc, syncedDoc, Date.now());
+    const reconciledState = alignSelections(syncDocToState(run.state, reconciledDoc));
+
+    this.applyStateSnapshot(reconciledState);
+    saveState(reconciledState);
+    this.lastPersistedState = cloneState(reconciledState);
 
     const failures = run.results.filter(result => !result.ok);
     if (failures.length === 0) {
@@ -1328,9 +1338,15 @@ class TrainingApp extends LitElement {
                         this.persist();
                       }}
                     >${this.selectedProgramId === item.id ? 'Selected' : 'Select'}</wa-button>
-                    <wa-button variant="danger" @click=${() => this.deleteProgram(item.id)}
-                      >Delete</wa-button
+                    <wa-button
+                      class="delete-icon-btn"
+                      size="small"
+                      variant="danger"
+                      aria-label="Delete program"
+                      @click=${() => this.deleteProgram(item.id)}
                     >
+                      <wa-icon name="xmark" label="Delete program"></wa-icon>
+                    </wa-button>
                   </div>
                 </div>
               `
@@ -1381,9 +1397,14 @@ class TrainingApp extends LitElement {
                             @click=${() => this.selectWorkout(workout.id)}
                           >${this.selectedWorkoutId === workout.id ? 'Selected' : 'Select'}</wa-button>
                           <wa-button
+                            class="delete-icon-btn"
+                            size="small"
                             variant="danger"
+                            aria-label="Delete workout"
                             @click=${() => this.removeWorkout(program.id, workout.id)}
-                          >Delete</wa-button>
+                          >
+                            <wa-icon name="xmark" label="Delete workout"></wa-icon>
+                          </wa-button>
                         </div>
                       </div>
                     `
@@ -1531,9 +1552,15 @@ class TrainingApp extends LitElement {
                             <wa-option value="strength">Strength</wa-option>
                             <wa-option value="hypertrophy">Hypertrophy</wa-option>
                           </wa-select>
-                          <wa-button variant="danger" @click=${() => this.removeExerciseFromWorkout(program.id, selectedWorkout.id, item.id)}
-                            >Remove</wa-button
+                          <wa-button
+                            class="delete-icon-btn"
+                            size="small"
+                            variant="danger"
+                            aria-label="Remove exercise"
+                            @click=${() => this.removeExerciseFromWorkout(program.id, selectedWorkout.id, item.id)}
                           >
+                            <wa-icon name="xmark" label="Remove exercise"></wa-icon>
+                          </wa-button>
                         </div>
                       </div>
                     `
@@ -1930,9 +1957,15 @@ class TrainingApp extends LitElement {
                           ?disabled=${!target.connected}
                           @click=${() => this.disconnectSyncTarget(target.id)}
                         >Disconnect</wa-button>
-                        <wa-button variant="danger" @click=${() => this.removeSyncTarget(target.id)}
-                          >Remove</wa-button
+                        <wa-button
+                          class="delete-icon-btn"
+                          size="small"
+                          variant="danger"
+                          aria-label="Remove sync target"
+                          @click=${() => this.removeSyncTarget(target.id)}
                         >
+                          <wa-icon name="xmark" label="Remove sync target"></wa-icon>
+                        </wa-button>
                       </div>
                     </div>
                   `

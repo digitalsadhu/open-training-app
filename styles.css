@@ -165,10 +165,59 @@ header p {
 
 .controls-row {
   align-items: flex-end;
+  width: 100%;
+}
+
+.controls-row wa-input {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.controls-row wa-button {
+  flex: 0 0 auto;
 }
 
 .exercise-defaults-row {
   align-items: flex-end;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.exercise-defaults-row wa-input,
+.exercise-defaults-row wa-select,
+.exercise-defaults-row wa-button {
+  align-self: flex-end;
+}
+
+.exercise-defaults-row .delete-icon-btn {
+  align-self: flex-end;
+  margin-bottom: 2px;
+}
+
+.exercise-defaults-row wa-select {
+  align-self: flex-end;
+}
+
+.exercise-defaults-row .delete-icon-btn::part(base) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exercise-defaults-row .delete-icon-btn wa-icon {
+  display: block;
+  line-height: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 860px) {
+  .exercise-defaults-row {
+    flex-wrap: wrap;
+  }
+
+  .exercise-defaults-row .delete-icon-btn {
+    margin-bottom: 0;
+  }
 }
 
 .badge {
@@ -292,6 +341,21 @@ button.muscle-chip.is-selected {
 
 .set-row button {
   width: 100%;
+}
+
+.set-row .delete-set-btn::part(base) {
+  width: 100%;
+  padding-inline: 0;
+  border-radius: 999px;
+}
+
+.delete-icon-btn::part(base) {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 999px;
 }
 
 @media (max-width: 560px) {
