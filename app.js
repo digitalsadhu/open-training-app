@@ -260,7 +260,8 @@ class TrainingApp extends LitElement {
     googleConnectDialogOpen: { state: true },
     googleSpreadsheetOptions: { state: true },
     googleSpreadsheetChoice: { state: true },
-    googleSpreadsheetsLoading: { state: true }
+    googleSpreadsheetsLoading: { state: true },
+    googleConnectBusy: { state: true }
   };
 
   static styles = css`
@@ -314,6 +315,7 @@ class TrainingApp extends LitElement {
     this.googleSpreadsheetOptions = [];
     this.googleSpreadsheetChoice = '';
     this.googleSpreadsheetsLoading = false;
+    this.googleConnectBusy = false;
     this.historyExerciseId = '';
     this.historyExerciseName = '';
     this.saveValidationError = '';
@@ -730,6 +732,9 @@ class TrainingApp extends LitElement {
       docId: DEFAULT_SYNC_DOC_ID
     };
 
+    this.googleConnectBusy = true;
+    this.syncFeedback = 'Creating and connecting spreadsheet...';
+    this.closeGoogleConnectDialog();
     try {
       const createdConfig = await adapter.createTargetConfig(baseConfig);
       const config = adapter.validateConfig(createdConfig);
@@ -737,9 +742,10 @@ class TrainingApp extends LitElement {
       const target = this.createConnectedTarget(adapter.id, this.syncNameInput.trim() || 'Google Sheets', connectedConfig);
       this.syncFeedback = `${target.name} connected with a newly created sheet.`;
       this.persist({ triggerSync: false });
-      this.closeGoogleConnectDialog();
     } catch (error) {
       this.syncFeedback = error?.message || String(error);
+    } finally {
+      this.googleConnectBusy = false;
     }
   }
 
@@ -779,6 +785,9 @@ class TrainingApp extends LitElement {
       return;
     }
 
+    this.googleConnectBusy = true;
+    this.syncFeedback = `Connecting to spreadsheet ${safeSpreadsheetId} and restoring data...`;
+    this.closeGoogleConnectDialog();
     try {
       const config = adapter.validateConfig({
         clientId: this.googleClientId,
@@ -796,9 +805,10 @@ class TrainingApp extends LitElement {
       this.persist({ triggerSync: false });
       await this.syncNow([target.id]);
       this.syncFeedback = `Restored data from spreadsheet ${safeSpreadsheetId}.`;
-      this.closeGoogleConnectDialog();
     } catch (error) {
       this.syncFeedback = error?.message || String(error);
+    } finally {
+      this.googleConnectBusy = false;
     }
   }
 
@@ -1836,6 +1846,7 @@ class TrainingApp extends LitElement {
             >${this.syncState?.isSyncing ? 'Syncing...' : 'Sync all now'}</wa-button>
           </div>
           ${this.syncFeedback ? html`<wa-callout>${this.syncFeedback}</wa-callout>` : html``}
+          ${this.googleConnectBusy ? html`<div class="muted">Working... please wait.</div>` : html``}
         </div>
       </section>
 
@@ -1954,17 +1965,17 @@ class TrainingApp extends LitElement {
           </select>
           <div class="inline">
             <wa-button
-              ?disabled=${!this.googleSpreadsheetChoice || this.googleSpreadsheetsLoading}
+              ?disabled=${!this.googleSpreadsheetChoice || this.googleSpreadsheetsLoading || this.googleConnectBusy}
               @click=${() => this.connectExistingGoogleSheetAndRestore(this.googleSpreadsheetChoice)}
               >Use selected spreadsheet</wa-button
             >
-            <wa-button @click=${() => this.loadGoogleSpreadsheetOptions()}>Refresh list</wa-button>
+            <wa-button ?disabled=${this.googleConnectBusy} @click=${() => this.loadGoogleSpreadsheetOptions()}>Refresh list</wa-button>
           </div>
           ${this.googleSpreadsheetsLoading ? html`<div class="muted">Loading spreadsheets...</div>` : html``}
           <div class="sync-or-divider">Or</div>
           <wa-button
             variant="primary"
-            ?disabled=${this.googleSpreadsheetsLoading}
+            ?disabled=${this.googleSpreadsheetsLoading || this.googleConnectBusy}
             @click=${() => this.createAndConnectGoogleSheet()}
             >Create new spreadsheet</wa-button
           >
