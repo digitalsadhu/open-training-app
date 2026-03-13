@@ -1285,7 +1285,6 @@ class TrainingApp extends LitElement {
 
     return html`
       <section class="section">
-        <h2>Programs</h2>
         <div class="stack">
           <div class="inline controls-row">
             <wa-input
@@ -1343,7 +1342,6 @@ class TrainingApp extends LitElement {
       ${program
         ? html`
             <section class="section">
-              <h2>Program Builder</h2>
               <div class="stack">
                 <div class="inline controls-row">
                   <wa-input
@@ -1555,7 +1553,6 @@ class TrainingApp extends LitElement {
     const historyItems = this.historyExerciseId ? this.getExerciseHistory(this.historyExerciseId) : [];
     return html`
       <section class="section">
-        <h2>Train</h2>
         ${program && workout
           ? html`
                 <div class="stack">
@@ -1730,7 +1727,6 @@ class TrainingApp extends LitElement {
 
     return html`
       <section class="section">
-        <h2>Progress</h2>
         ${sessions.length === 0
           ? html`<div class="muted">Log a session to see progress history.</div>`
           : html`
