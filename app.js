@@ -2010,7 +2010,7 @@ class TrainingApp extends LitElement {
             <p>Build programs, log sets, and carry your last performance into every session.</p>
           </div>
           ${this.isStandalone || this.installHinted
-            ? html`<div class="badge">Installed</div>`
+            ? html``
             : html`<button class="badge install-badge" type="button" @click=${() => this.installApp()}>Install</button>`}
         </header>
         ${this.clearDataNotice
