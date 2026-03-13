@@ -10,6 +10,7 @@ import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/compo
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/tab-panel/tab-panel.js';
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/dialog/dialog.js';
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/icon/icon.js';
+import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/spinner/spinner.js';
 import { fetchExercises, getEnglishLanguageId, MUSCLE_GROUPS, UNCATEGORIZED_GROUP } from './data.js';
 import {
   SyncRegistry,
@@ -251,6 +252,7 @@ class TrainingApp extends LitElement {
     isStandalone: { state: true },
     installHinted: { state: true },
     installPromptAvailable: { state: true },
+    showStartupSpinner: { state: true },
     activeTab: { state: true },
     clearDataDialogOpen: { state: true },
     syncState: { state: true },
@@ -324,6 +326,7 @@ class TrainingApp extends LitElement {
     this.isStandalone = this.detectStandalone();
     this.installHinted = false;
     this.installPromptAvailable = false;
+    this.showStartupSpinner = this.detectStandalone();
     this.deferredInstallPrompt = null;
     this.onBeforeInstallPrompt = event => {
       event.preventDefault();
@@ -523,9 +526,7 @@ class TrainingApp extends LitElement {
       customElements.whenDefined('wa-input'),
       customElements.whenDefined('wa-button'),
       customElements.whenDefined('wa-select'),
-      customElements.whenDefined('wa-tab-group'),
-      customElements.whenDefined('wa-tab'),
-      customElements.whenDefined('wa-tab-panel'),
+      customElements.whenDefined('wa-spinner'),
       nextPaint()
     ];
 
@@ -540,6 +541,7 @@ class TrainingApp extends LitElement {
       ]);
     } finally {
       remove();
+      this.showStartupSpinner = false;
     }
   }
 
@@ -2002,13 +2004,33 @@ class TrainingApp extends LitElement {
   }
 
   render() {
+    const tabItems = [
+      { id: 'programs', label: 'Programs', icon: 'table-list' },
+      { id: 'train', label: 'Train', icon: 'dumbbell' },
+      { id: 'progress', label: 'Progress', icon: 'chart-line' },
+      { id: 'settings', label: 'Settings', icon: 'gear' }
+    ];
+    const activeTabLabel = tabItems.find(item => item.id === this.activeTab)?.label || 'Programs';
+    const activePanel =
+      this.activeTab === 'train'
+        ? this.renderTraining()
+        : this.activeTab === 'progress'
+          ? this.renderProgress()
+          : this.activeTab === 'settings'
+            ? this.renderSync()
+            : this.renderPrograms();
+
     return html`
+      ${this.showStartupSpinner
+        ? html`
+            <div class="startup-overlay" aria-live="polite" aria-label="Loading app">
+              <wa-spinner style="font-size: 40px;"></wa-spinner>
+            </div>
+          `
+        : html``}
       <main>
-        <header>
-          <div>
-            <h1>Open Training App</h1>
-            <p>Build programs, log sets, and carry your last performance into every session.</p>
-          </div>
+        <header class="app-topbar">
+          <h1>${activeTabLabel}</h1>
           ${this.isStandalone || this.installHinted
             ? html``
             : html`<button class="badge install-badge" type="button" @click=${() => this.installApp()}>Install</button>`}
@@ -2048,27 +2070,26 @@ class TrainingApp extends LitElement {
             `
           : html``}
 
-        <wa-tab-group
-          @wa-tab-show=${event => {
-            const nextTab = String(event.detail?.name || event.detail?.panel || '').trim();
-            if (nextTab) this.activeTab = nextTab;
-          }}
-        >
-          <wa-tab slot="nav" panel="programs" ?active=${this.activeTab === 'programs'}>Programs</wa-tab>
-          <wa-tab slot="nav" panel="train" ?active=${this.activeTab === 'train'}>Train</wa-tab>
-          <wa-tab slot="nav" panel="progress" ?active=${this.activeTab === 'progress'}>Progress</wa-tab>
-          <wa-tab slot="nav" panel="settings" ?active=${this.activeTab === 'settings'}>Settings</wa-tab>
-
-          <wa-tab-panel name="programs" ?active=${this.activeTab === 'programs'}>${this.renderPrograms()}</wa-tab-panel>
-          <wa-tab-panel name="train" ?active=${this.activeTab === 'train'}>${this.renderTraining()}</wa-tab-panel>
-          <wa-tab-panel name="progress" ?active=${this.activeTab === 'progress'}>${this.renderProgress()}</wa-tab-panel>
-          <wa-tab-panel name="settings" ?active=${this.activeTab === 'settings'}>${this.renderSync()}</wa-tab-panel>
-        </wa-tab-group>
+        ${activePanel}
 
         <footer>
           <div>Exercise data: public open-source API. Cache refreshes weekly for offline support.</div>
         </footer>
       </main>
+      <nav class="app-bottom-nav" aria-label="Primary navigation">
+        ${tabItems.map(item => html`
+          <button
+            class="tab-bar-btn ${this.activeTab === item.id ? 'is-active' : ''}"
+            type="button"
+            @click=${() => {
+              this.activeTab = item.id;
+            }}
+          >
+            <wa-icon name=${item.icon}></wa-icon>
+            <span>${item.label}</span>
+          </button>
+        `)}
+      </nav>
     `;
   }
 }
