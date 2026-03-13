@@ -1602,7 +1602,9 @@ class TrainingApp extends LitElement {
                                   <div class="set-row">
                                     <wa-input
                                       type="number"
+                                      size="small"
                                       label="Reps"
+                                      aria-label="Reps"
                                       .value=${set.reps}
                                       placeholder=${set.targetReps}
                                       ?disabled=${entry.skipped}
@@ -1619,7 +1621,9 @@ class TrainingApp extends LitElement {
                                     ></wa-input>
                                     <wa-input
                                       type="number"
+                                      size="small"
                                       label="Weight"
+                                      aria-label="Weight"
                                       .value=${set.weight}
                                       placeholder=${set.targetWeight}
                                       ?disabled=${entry.skipped}
@@ -1635,15 +1639,22 @@ class TrainingApp extends LitElement {
                                       }}
                                     ></wa-input>
                                     <wa-button
+                                      class="log-set-btn"
+                                      size="small"
                                       variant="primary"
                                       ?disabled=${set.logged || entry.skipped}
                                       @click=${() => this.logDraftSet(entry.exerciseId, index)}
                                     >${set.logged ? 'Logged' : 'Log'}</wa-button>
                                     <wa-button
+                                      class="delete-set-btn"
+                                      size="small"
                                       variant="danger"
                                       ?disabled=${entry.sets.length === 1 || entry.skipped}
                                       @click=${() => this.removeDraftSet(entry.exerciseId, index)}
-                                    >-</wa-button>
+                                      aria-label="Delete set"
+                                    >
+                                      <wa-icon name="xmark" label="Delete set"></wa-icon>
+                                    </wa-button>
                                   </div>
                                 `
                               )}

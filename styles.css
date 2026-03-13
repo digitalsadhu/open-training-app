@@ -276,8 +276,8 @@ button.muscle-chip.is-selected {
 
 .set-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 72px 48px;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 68px 40px;
+  gap: 6px;
   align-items: end;
 }
 
@@ -285,7 +285,8 @@ button.muscle-chip.is-selected {
   min-width: 0;
 }
 
-.set-row wa-button {
+.set-row .log-set-btn,
+.set-row .delete-set-btn {
   align-self: end;
 }
 
@@ -295,11 +296,7 @@ button.muscle-chip.is-selected {
 
 @media (max-width: 560px) {
   .set-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-
-  .set-row wa-button {
-    width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 62px 36px;
   }
 }
 
