@@ -12,6 +12,7 @@ import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/compo
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/icon/icon.js';
 import 'https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.2.1/dist-cdn/components/spinner/spinner.js';
 import { fetchExercises, getEnglishLanguageId, MUSCLE_GROUPS, UNCATEGORIZED_GROUP } from './data.js';
+import { TAB_ITEMS, labelFromTab, pathFromTab, tabFromPath, titleFromTab } from './routes.js';
 import {
   SyncRegistry,
   alignSelections,
@@ -25,6 +26,7 @@ import {
   stateToSyncDoc,
   syncDocToState
 } from './sync/index.js';
+import { createGoogleGeminiAdapter, DEFAULT_GEMINI_MODEL } from './ai/googleGeminiAdapter.js';
 import {
   addDraftSetState,
   addExerciseToWorkoutState,
@@ -49,6 +51,8 @@ const EXERCISE_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
 const DEFAULT_SYNC_SHEET_TAB = '__training_sync';
 const DEFAULT_SYNC_DOC_ID = 'default';
 const ALL_GROUPS_FILTER = '__all__';
+const DEFAULT_AI_PROMPT =
+  'Build me a 4 day program for general strength and muscle. I can train 60 minutes per session with basic gym equipment.';
 
 const resolveGoogleClientId = () => {
   const fromGlobal = String(globalThis.__TRAINING_APP_GOOGLE_CLIENT_ID || '').trim();
@@ -134,6 +138,12 @@ const defaultState = {
   trainingPriority: 'hypertrophy',
   draftSession: null,
   sync: createDefaultSyncState(),
+  ai: {
+    providerId: 'google-gemini-oauth',
+    model: DEFAULT_GEMINI_MODEL,
+    googleProjectId: '',
+    connected: false
+  },
   exerciseCache: {
     updatedAt: 0,
     exercises: []
@@ -175,6 +185,10 @@ const loadState = () => {
       sync: {
         ...createDefaultSyncState(),
         ...(parsed.sync || {})
+      },
+      ai: {
+        ...defaultState.ai,
+        ...(parsed.ai || {})
       },
       exerciseCache: {
         ...defaultState.exerciseCache,
@@ -301,7 +315,15 @@ class TrainingApp extends LitElement {
     googleSpreadsheetOptions: { state: true },
     googleSpreadsheetChoice: { state: true },
     googleSpreadsheetsLoading: { state: true },
-    googleConnectBusy: { state: true }
+    googleConnectBusy: { state: true },
+    aiConfig: { state: true },
+    aiConnected: { state: true },
+    aiFeedback: { state: true },
+    aiPrompt: { state: true },
+    aiGenerating: { state: true },
+    aiDraftPlan: { state: true },
+    readyTrainPanel: { state: true },
+    readyProgressPanel: { state: true }
   };
 
   static styles = css`
@@ -319,6 +341,7 @@ class TrainingApp extends LitElement {
     const saved = loadState();
     this.syncRegistry = new SyncRegistry();
     this.syncRegistry.register(createGoogleSheetsAdapter());
+    this.aiAdapter = createGoogleGeminiAdapter();
     this.autoSyncTimer = 0;
     this.lastPersistedState = cloneState(saved);
     this.localRevision = 0;
@@ -357,6 +380,17 @@ class TrainingApp extends LitElement {
     this.googleSpreadsheetChoice = '';
     this.googleSpreadsheetsLoading = false;
     this.googleConnectBusy = false;
+    this.aiConfig = {
+      providerId: saved.ai?.providerId || 'google-gemini-oauth',
+      model: saved.ai?.model || DEFAULT_GEMINI_MODEL,
+      googleProjectId: String(saved.ai?.googleProjectId || ''),
+      connected: Boolean(saved.ai?.connected)
+    };
+    this.aiConnected = Boolean(this.aiConfig.connected);
+    this.aiFeedback = '';
+    this.aiPrompt = DEFAULT_AI_PROMPT;
+    this.aiGenerating = false;
+    this.aiDraftPlan = null;
     this.historyExerciseId = '';
     this.historyExerciseName = '';
     this.saveValidationError = '';
@@ -387,8 +421,16 @@ class TrainingApp extends LitElement {
     this.onDisplayModeChange = () => {
       this.isStandalone = this.detectStandalone();
     };
-    this.activeTab = this.programs.length > 0 ? 'train' : 'programs';
+    const routeMatch = tabFromPath(globalThis.location?.pathname || '/');
+    this.activeTab = routeMatch.tab;
+    this.needsInitialRouteSync = routeMatch.requiresRedirect;
+    this.onPopState = () => {
+      this.applyRouteFromLocation();
+    };
     this.clearDataDialogOpen = false;
+    this.readyTrainPanel = false;
+    this.readyProgressPanel = false;
+    this.panelWarmupTimer = 0;
     try {
       if (globalThis.sessionStorage?.getItem(CLEAR_DATA_FLASH_KEY) === '1') {
         this.clearDataNotice = 'All local data was cleared.';
@@ -402,6 +444,7 @@ class TrainingApp extends LitElement {
     } catch {
       this.installHinted = false;
     }
+    this.updateDocumentTitle();
   }
 
   connectedCallback() {
@@ -410,7 +453,10 @@ class TrainingApp extends LitElement {
     globalThis.addEventListener('beforeinstallprompt', this.onBeforeInstallPrompt);
     globalThis.addEventListener('appinstalled', this.onAppInstalled);
     globalThis.matchMedia?.('(display-mode: standalone)')?.addEventListener?.('change', this.onDisplayModeChange);
+    globalThis.addEventListener('popstate', this.onPopState);
     this.installMobileZoomGuard();
+    this.syncRouteToActiveTab({ replace: this.needsInitialRouteSync });
+    this.warmPanelIfNeeded(this.activeTab);
     this.loadExerciseLibrary();
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(error => {
@@ -423,6 +469,11 @@ class TrainingApp extends LitElement {
     globalThis.removeEventListener('beforeinstallprompt', this.onBeforeInstallPrompt);
     globalThis.removeEventListener('appinstalled', this.onAppInstalled);
     globalThis.matchMedia?.('(display-mode: standalone)')?.removeEventListener?.('change', this.onDisplayModeChange);
+    globalThis.removeEventListener('popstate', this.onPopState);
+    if (this.panelWarmupTimer) {
+      clearTimeout(this.panelWarmupTimer);
+      this.panelWarmupTimer = 0;
+    }
     super.disconnectedCallback();
   }
 
@@ -431,6 +482,89 @@ class TrainingApp extends LitElement {
       globalThis.matchMedia?.('(display-mode: standalone)')?.matches ||
       globalThis.navigator?.standalone === true
     );
+  }
+
+  reduceMotionEnabled() {
+    return Boolean(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
+  }
+
+  canUseViewTransitions() {
+    return typeof document.startViewTransition === 'function' && !this.reduceMotionEnabled() && !this.showStartupSpinner;
+  }
+
+  updateDocumentTitle() {
+    document.title = titleFromTab(this.activeTab);
+  }
+
+  runWithViewTransition(updateFn) {
+    if (!this.canUseViewTransitions()) {
+      updateFn();
+      return;
+    }
+    try {
+      document.startViewTransition(() => {
+        updateFn();
+        return this.updateComplete;
+      });
+    } catch {
+      updateFn();
+    }
+  }
+
+  syncRouteToActiveTab({ replace = false } = {}) {
+    const targetPath = pathFromTab(this.activeTab);
+    const currentPath = String(globalThis.location?.pathname || '/');
+    const { normalizedPath } = tabFromPath(currentPath);
+    if (normalizedPath === targetPath && !replace) return;
+    const method = replace ? 'replaceState' : 'pushState';
+    try {
+      globalThis.history?.[method]?.({}, '', targetPath);
+    } catch {
+      // Ignore history API failures.
+    }
+  }
+
+  setActiveTab(tabId, { pushHistory = false, replaceHistory = false, transition = true } = {}) {
+    const normalizedTab = TAB_ITEMS.some(item => item.id === tabId) ? tabId : 'programs';
+    if (this.activeTab === normalizedTab) {
+      if (replaceHistory) this.syncRouteToActiveTab({ replace: true });
+      return;
+    }
+    const apply = () => {
+      this.activeTab = normalizedTab;
+      if (pushHistory) this.syncRouteToActiveTab();
+      if (replaceHistory) this.syncRouteToActiveTab({ replace: true });
+      this.updateDocumentTitle();
+      this.warmPanelIfNeeded(normalizedTab);
+    };
+    if (!transition) {
+      apply();
+      return;
+    }
+    this.runWithViewTransition(apply);
+  }
+
+  applyRouteFromLocation({ replace = false, transition = true } = {}) {
+    const route = tabFromPath(globalThis.location?.pathname || '/');
+    this.setActiveTab(route.tab, {
+      pushHistory: false,
+      replaceHistory: replace || route.requiresRedirect,
+      transition
+    });
+  }
+
+  warmPanelIfNeeded(tabId) {
+    const isHeavyPanel = tabId === 'train' || tabId === 'progress';
+    const ready = tabId === 'train' ? this.readyTrainPanel : tabId === 'progress' ? this.readyProgressPanel : true;
+    if (!isHeavyPanel || ready) return;
+    if (this.panelWarmupTimer) {
+      clearTimeout(this.panelWarmupTimer);
+    }
+    this.panelWarmupTimer = window.setTimeout(() => {
+      this.panelWarmupTimer = 0;
+      if (tabId === 'train') this.readyTrainPanel = true;
+      if (tabId === 'progress') this.readyProgressPanel = true;
+    }, 140);
   }
 
   getInstallInstructions() {
@@ -593,6 +727,7 @@ class TrainingApp extends LitElement {
       trainingPriority: this.trainingPriority,
       draftSession: this.draftSession,
       sync: this.syncState,
+      ai: this.aiConfig,
       exerciseCache: {
         updatedAt: this.exerciseCacheUpdatedAt,
         exercises: this.exercises
@@ -609,6 +744,10 @@ class TrainingApp extends LitElement {
     this.trainingPriority = aligned.trainingPriority || 'hypertrophy';
     this.draftSession = aligned.draftSession;
     this.syncState = aligned.sync;
+    this.aiConfig = {
+      ...defaultState.ai,
+      ...(aligned.ai || {})
+    };
     this.exercises = (aligned.exerciseCache?.exercises || []).map(normalizeExerciseLibraryItem);
     this.exerciseCacheUpdatedAt = aligned.exerciseCache?.updatedAt || 0;
   }
@@ -945,6 +1084,272 @@ class TrainingApp extends LitElement {
     this.persist({ triggerSync: false });
   }
 
+  extractRequestedWorkoutCount(userPrompt) {
+    const text = String(userPrompt || '').trim().toLowerCase();
+    if (!text) return 0;
+
+    const numericMatch = text.match(/\b(\d+)\s*[- ]?(day|days|workout|workouts)\b/);
+    if (numericMatch) {
+      const parsed = Number(numericMatch[1]);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    }
+
+    const wordToNumber = {
+      one: 1,
+      two: 2,
+      three: 3,
+      four: 4,
+      five: 5,
+      six: 6
+    };
+    const wordMatch = text.match(/\b(one|two|three|four|five|six)\s*[- ]?(day|days|workout|workouts)\b/);
+    if (!wordMatch) return 0;
+    return wordToNumber[wordMatch[1]] || 0;
+  }
+
+  buildAiProgramPrompt(userPrompt) {
+    const request = String(userPrompt || '').trim();
+    const requestedWorkoutCount = this.extractRequestedWorkoutCount(request);
+    const workoutCountRule = requestedWorkoutCount
+      ? `- Return exactly ${requestedWorkoutCount} workouts because the user asked for that number of days.`
+      : '- Return 3 to 6 workouts.';
+    return `
+You are creating a strength training program as strict JSON for a workout app.
+
+Return only valid JSON (no markdown, no commentary) with this exact shape:
+{
+  "programName": "string",
+  "notes": "string",
+  "workouts": [
+    {
+      "name": "string",
+      "exercises": [
+        {
+          "name": "string",
+          "defaultSets": 3,
+          "trainingPriority": "strength" | "hypertrophy",
+          "muscleGroups": ["Chest"]
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+${workoutCountRule}
+- 4 to 8 exercises per workout.
+- Keep names concise.
+- Use realistic gym exercises.
+- Use "strength" or "hypertrophy" for each exercise trainingPriority.
+
+User goal:
+${request}
+
+Current default training priority: ${this.trainingPriority}.
+`.trim();
+  }
+
+  buildWorkoutCountCorrectionPrompt(userPrompt, requiredWorkouts, receivedWorkouts) {
+    return `
+The user asked for a ${requiredWorkouts}-day program, but your previous JSON had ${receivedWorkouts} workouts.
+
+Regenerate the full program as valid JSON only, using exactly ${requiredWorkouts} workouts.
+Keep all other constraints the same.
+
+User goal:
+${String(userPrompt || '').trim()}
+`.trim();
+  }
+
+  normalizeAiProgramPlan(rawPlan, { requestedWorkoutCount = 0 } = {}) {
+    const plan = rawPlan && typeof rawPlan === 'object' ? rawPlan : {};
+    const programName = String(plan.programName || plan.name || '').trim();
+    const notes = String(plan.notes || '').trim();
+    const workouts = Array.isArray(plan.workouts) ? plan.workouts : [];
+
+    const normalizedWorkouts = workouts
+      .map(workout => {
+        const workoutName = String(workout?.name || '').trim();
+        const exercises = Array.isArray(workout?.exercises) ? workout.exercises : [];
+        const normalizedExercises = exercises
+          .map(exercise => {
+            const name = String(exercise?.name || '').trim();
+            if (!name) return null;
+            const rawSets = Number(exercise?.defaultSets);
+            const defaultSets = Number.isFinite(rawSets) ? Math.min(8, Math.max(1, Math.round(rawSets))) : 3;
+            const trainingPriority =
+              String(exercise?.trainingPriority || '').trim() === 'strength' ? 'strength' : 'hypertrophy';
+            return {
+              name,
+              defaultSets,
+              trainingPriority,
+              muscleGroups: normalizeMuscleGroups(exercise?.muscleGroups)
+            };
+          })
+          .filter(Boolean)
+          .slice(0, 12);
+        if (!workoutName || normalizedExercises.length === 0) return null;
+        return {
+          name: workoutName,
+          exercises: normalizedExercises
+        };
+      })
+      .filter(Boolean)
+      .slice(0, 8);
+
+    if (!programName) {
+      throw new Error('AI plan is missing a programName.');
+    }
+    if (normalizedWorkouts.length === 0) {
+      throw new Error('AI plan must include at least one workout with exercises.');
+    }
+    return {
+      programName,
+      notes,
+      workouts: normalizedWorkouts
+    };
+  }
+
+  async connectAiProvider({ forceConsent = true } = {}) {
+    if (!this.googleClientId) {
+      this.aiFeedback = 'Google OAuth client id is missing in app config.';
+      return false;
+    }
+    if (!this.aiConfig.googleProjectId) {
+      this.aiFeedback = 'Google Cloud project id is required for Gemini OAuth.';
+      return false;
+    }
+    try {
+      const connectedConfig = await this.aiAdapter.connect(
+        {
+          clientId: this.googleClientId,
+          projectId: this.aiConfig.googleProjectId,
+          model: this.aiConfig.model
+        },
+        { forceConsent }
+      );
+      this.aiConfig = {
+        ...this.aiConfig,
+        model: connectedConfig.model,
+        googleProjectId: connectedConfig.projectId,
+        connected: true
+      };
+      this.aiConnected = true;
+      this.aiFeedback = 'AI provider connected.';
+      this.persist({ triggerSync: false });
+      return true;
+    } catch (error) {
+      this.aiConnected = false;
+      this.aiConfig = {
+        ...this.aiConfig,
+        connected: false
+      };
+      this.aiFeedback = error?.message || String(error);
+      return false;
+    }
+  }
+
+  async generateProgramWithAi() {
+    const trimmedPrompt = String(this.aiPrompt || '').trim();
+    if (!trimmedPrompt) {
+      this.aiFeedback = 'Enter your training goal before generating.';
+      return;
+    }
+    if (this.aiGenerating) return;
+
+    this.aiGenerating = true;
+    this.aiFeedback = '';
+    this.aiDraftPlan = null;
+    try {
+      if (!this.aiConnected) {
+        const connected = await this.connectAiProvider({ forceConsent: false });
+        if (!connected) return;
+      }
+      const prompt = this.buildAiProgramPrompt(trimmedPrompt);
+      const requestedWorkoutCount = this.extractRequestedWorkoutCount(trimmedPrompt);
+      const rawPlan = await this.aiAdapter.generateProgramPlan(
+        {
+          clientId: this.googleClientId,
+          projectId: this.aiConfig.googleProjectId,
+          model: this.aiConfig.model
+        },
+        { prompt }
+      );
+      let normalized = this.normalizeAiProgramPlan(rawPlan, { requestedWorkoutCount });
+      if (requestedWorkoutCount > 0 && normalized.workouts.length !== requestedWorkoutCount) {
+        const correctionPrompt = this.buildWorkoutCountCorrectionPrompt(
+          trimmedPrompt,
+          requestedWorkoutCount,
+          normalized.workouts.length
+        );
+        const correctedRawPlan = await this.aiAdapter.generateProgramPlan(
+          {
+            clientId: this.googleClientId,
+            projectId: this.aiConfig.googleProjectId,
+            model: this.aiConfig.model
+          },
+          { prompt: correctionPrompt }
+        );
+        normalized = this.normalizeAiProgramPlan(correctedRawPlan, { requestedWorkoutCount });
+      }
+      if (requestedWorkoutCount > 0 && normalized.workouts.length !== requestedWorkoutCount) {
+        throw new Error(`AI returned ${normalized.workouts.length} workouts. Requested exactly ${requestedWorkoutCount}. Try generating again.`);
+      }
+      this.aiDraftPlan = normalized;
+      this.aiFeedback = 'AI plan ready. Review it below and apply when ready.';
+    } catch (error) {
+      this.aiFeedback = error?.message || String(error);
+      this.aiDraftPlan = null;
+    } finally {
+      this.aiGenerating = false;
+    }
+  }
+
+  applyAiDraftProgram() {
+    const plan = this.aiDraftPlan;
+    if (!plan) return;
+
+    const now = Date.now();
+    const programId = createId();
+    const workouts = plan.workouts.map(workout => ({
+      id: createId(),
+      name: workout.name,
+      exercises: workout.exercises.map(exercise => ({
+        id: createId(),
+        name: exercise.name,
+        defaultSets: exercise.defaultSets,
+        defaultReps: '',
+        defaultWeight: '',
+        trainingPriority: exercise.trainingPriority,
+        muscleGroups: normalizeMuscleGroups(exercise.muscleGroups)
+      }))
+    }));
+
+    this.programs = [
+      {
+        id: programId,
+        name: plan.programName,
+        notes: plan.notes,
+        workouts,
+        createdAt: now
+      },
+      ...this.programs
+    ];
+    this.selectedProgramId = programId;
+    this.selectedWorkoutId = workouts[0]?.id || '';
+    this.aiDraftPlan = null;
+    this.aiFeedback = 'AI program added.';
+    this.persist();
+  }
+
+  dismissAiDraftProgram() {
+    this.aiDraftPlan = null;
+  }
+
+  isAiProgramBuilderConfigured() {
+    return Boolean(this.googleClientId && String(this.aiConfig.googleProjectId || '').trim() && this.aiConfig.connected);
+  }
+
 
   createProgram(name) {
     const next = createProgramState(this.programs, name, createId);
@@ -1083,10 +1488,14 @@ class TrainingApp extends LitElement {
     this.exerciseSearch = '';
     this.exerciseGroupFilter = ALL_GROUPS_FILTER;
     this.syncFeedback = '';
+    this.aiConnected = false;
+    this.aiFeedback = '';
+    this.aiPrompt = DEFAULT_AI_PROMPT;
+    this.aiDraftPlan = null;
     this.historyExerciseId = '';
     this.historyExerciseName = '';
     this.saveValidationError = '';
-    this.activeTab = 'programs';
+    this.setActiveTab('programs', { replaceHistory: true, transition: false });
   }
 
   startSession(programId, workoutId) {
@@ -1293,10 +1702,10 @@ class TrainingApp extends LitElement {
     this.exerciseGroupFilter = next || ALL_GROUPS_FILTER;
   }
 
-  renderMuscleGroupChips(groups, { clickable = false, selected = '' } = {}) {
+  renderMuscleGroupChips(groups, { clickable = false, selected = '', inline = false } = {}) {
     const normalized = normalizeMuscleGroups(groups);
     return html`
-      <div class="chip-row">
+      <div class="chip-row ${inline ? 'is-inline' : ''}">
         ${normalized.map(group =>
           clickable
             ? html`
@@ -1430,6 +1839,79 @@ class TrainingApp extends LitElement {
             )}
           </div>
         </div>
+      </section>
+
+      <section class="section">
+        <h2>Build Program With AI</h2>
+        ${this.isAiProgramBuilderConfigured()
+          ? html`
+              <div class="stack">
+                <wa-textarea
+                  label="Describe your goal"
+                  rows="4"
+                  placeholder="e.g. Build a 3-day beginner full body plan with dumbbells and a barbell."
+                  .value=${this.aiPrompt}
+                  @input=${event => {
+                    this.aiPrompt = event.target.value;
+                  }}
+                ></wa-textarea>
+                <div class="inline">
+                  <wa-button
+                    variant="primary"
+                    ?disabled=${this.aiGenerating}
+                    @click=${() => this.generateProgramWithAi()}
+                  >${this.aiGenerating ? 'Generating...' : 'Generate Plan'}</wa-button>
+                  ${this.aiDraftPlan
+                    ? html`<wa-button @click=${() => this.dismissAiDraftProgram()}>Discard Draft</wa-button>`
+                    : html``}
+                </div>
+                ${this.aiFeedback ? html`<wa-callout>${this.aiFeedback}</wa-callout>` : html``}
+                ${this.aiDraftPlan
+                  ? html`
+                      <div class="ai-plan-preview">
+                        <div>
+                          <strong>${this.aiDraftPlan.programName}</strong>
+                          ${this.aiDraftPlan.notes ? html`<div class="muted">${this.aiDraftPlan.notes}</div>` : html``}
+                        </div>
+                        <div class="list">
+                          ${this.aiDraftPlan.workouts.map(
+                            workout => html`
+                              <div class="list-item ai-plan-workout">
+                                <div>
+                                  <strong>${workout.name}</strong>
+                                  <div class="muted">${workout.exercises.length} exercises</div>
+                                  <div class="muted">
+                                    ${workout.exercises
+                                      .slice(0, 6)
+                                      .map(item => item.name)
+                                      .join(', ')}
+                                    ${workout.exercises.length > 6 ? '…' : ''}
+                                  </div>
+                                </div>
+                              </div>
+                            `
+                          )}
+                        </div>
+                        <div class="inline">
+                          <wa-button variant="primary" @click=${() => this.applyAiDraftProgram()}
+                            >Add This Program</wa-button
+                          >
+                        </div>
+                      </div>
+                    `
+                  : html``}
+              </div>
+            `
+          : html`
+              <div class="stack">
+                <wa-callout variant="warning">
+                  Set up AI in Settings first. Add your Google Cloud project id, then connect the provider.
+                </wa-callout>
+                <div class="inline">
+                  <wa-button @click=${() => this.setActiveTab('settings', { pushHistory: true })}>Open Settings</wa-button>
+                </div>
+              </div>
+            `}
       </section>
 
       ${program
@@ -1579,65 +2061,64 @@ class TrainingApp extends LitElement {
                 <div class="list">
                   ${(selectedWorkout?.exercises || []).map((item, index, exercises) =>
                     html`
-                      <div class="list-item">
-                        <div>
-                          <strong>${item.name}</strong>
-                          ${this.renderMuscleGroupChips(item.muscleGroups)}
-                          <div class="muted">
-                            Defaults: ${formatNumber(item.defaultSets)} sets
+                      <div class="list-item exercise-plan-item">
+                        <div class="exercise-plan-row">
+                          <div class="exercise-plan-main">
+                            <div class="exercise-title-row">
+                              <strong>${item.name}</strong>
+                              ${this.renderMuscleGroupChips(item.muscleGroups, { inline: true })}
+                            </div>
+                            <div class="exercise-plan-controls">
+                              <wa-input
+                                type="number"
+                                label="Sets"
+                                min="1"
+                                .value=${item.defaultSets}
+                                @input=${event =>
+                                  this.updateWorkoutDefaults(program.id, selectedWorkout.id, item.id, 'defaultSets', event.target.value)}
+                              ></wa-input>
+                              <wa-select
+                                class="exercise-priority-select"
+                                label="Priority"
+                                .value=${item.trainingPriority || ''}
+                                @change=${event =>
+                                  this.updateWorkoutDefaults(
+                                    program.id,
+                                    selectedWorkout.id,
+                                    item.id,
+                                    'trainingPriority',
+                                    event.currentTarget.value
+                                  )}
+                              >
+                                <wa-option value="">Use global (${this.trainingPriority})</wa-option>
+                                <wa-option value="strength">Strength</wa-option>
+                                <wa-option value="hypertrophy">Hypertrophy</wa-option>
+                              </wa-select>
+                              <wa-button
+                                class="delete-icon-btn"
+                                size="small"
+                                variant="danger"
+                                aria-label="Remove exercise"
+                                @click=${() => this.removeExerciseFromWorkout(program.id, selectedWorkout.id, item.id)}
+                              >
+                                <wa-icon name="xmark" label="Remove exercise"></wa-icon>
+                              </wa-button>
+                            </div>
                           </div>
-                          <div class="muted">
-                            Priority: ${item.trainingPriority || `Global (${this.trainingPriority})`}
+                          <div class="exercise-move-controls">
+                            <wa-button
+                              size="small"
+                              ?disabled=${index === 0}
+                              @click=${() => this.moveExerciseInWorkout(program.id, selectedWorkout.id, item.id, 'up')}
+                              aria-label="Move exercise up"
+                            >↑</wa-button>
+                            <wa-button
+                              size="small"
+                              ?disabled=${index === exercises.length - 1}
+                              @click=${() => this.moveExerciseInWorkout(program.id, selectedWorkout.id, item.id, 'down')}
+                              aria-label="Move exercise down"
+                            >↓</wa-button>
                           </div>
-                        </div>
-                        <div class="inline exercise-defaults-row">
-                          <wa-button
-                            size="small"
-                            ?disabled=${index === 0}
-                            @click=${() => this.moveExerciseInWorkout(program.id, selectedWorkout.id, item.id, 'up')}
-                            aria-label="Move exercise up"
-                          >↑</wa-button>
-                          <wa-button
-                            size="small"
-                            ?disabled=${index === exercises.length - 1}
-                            @click=${() => this.moveExerciseInWorkout(program.id, selectedWorkout.id, item.id, 'down')}
-                            aria-label="Move exercise down"
-                          >↓</wa-button>
-                          <wa-input
-                            type="number"
-                            label="Sets"
-                            min="1"
-                            style="max-width: 84px"
-                            .value=${item.defaultSets}
-                            @input=${event =>
-                              this.updateWorkoutDefaults(program.id, selectedWorkout.id, item.id, 'defaultSets', event.target.value)}
-                          ></wa-input>
-                          <wa-select
-                            label="Priority"
-                            style="min-width: 170px"
-                            .value=${item.trainingPriority || ''}
-                            @change=${event =>
-                              this.updateWorkoutDefaults(
-                                program.id,
-                                selectedWorkout.id,
-                                item.id,
-                                'trainingPriority',
-                                event.currentTarget.value
-                              )}
-                          >
-                            <wa-option value="">Use global</wa-option>
-                            <wa-option value="strength">Strength</wa-option>
-                            <wa-option value="hypertrophy">Hypertrophy</wa-option>
-                          </wa-select>
-                          <wa-button
-                            class="delete-icon-btn"
-                            size="small"
-                            variant="danger"
-                            aria-label="Remove exercise"
-                            @click=${() => this.removeExerciseFromWorkout(program.id, selectedWorkout.id, item.id)}
-                          >
-                            <wa-icon name="xmark" label="Remove exercise"></wa-icon>
-                          </wa-button>
                         </div>
                       </div>
                     `
@@ -1917,6 +2398,17 @@ class TrainingApp extends LitElement {
     `;
   }
 
+  renderPanelSkeleton(tabId) {
+    const label = labelFromTab(tabId);
+    return html`
+      <section class="section section-skeleton" aria-label="${label} loading">
+        <div class="skeleton-line skeleton-line-lg"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line skeleton-line-sm"></div>
+      </section>
+    `;
+  }
+
   renderSync() {
     const adapters = this.syncRegistry.list();
     const targets = this.syncState?.targets || [];
@@ -2052,6 +2544,54 @@ class TrainingApp extends LitElement {
       </section>
 
       <section class="section">
+        <h2>AI Program Builder</h2>
+        <div class="stack">
+          <div class="muted">Sign in with your own Google account to use Gemini with your own billing.</div>
+          <wa-callout>
+            <div class="stack">
+              <strong>How to find your Google Cloud project id</strong>
+              <div class="muted">1. Open Google Cloud Console and choose your project.</div>
+              <div class="muted">2. The project id appears in the top project selector and on the dashboard.</div>
+              <div class="muted">
+                3. If you do not have one yet, create a project first in
+                <a href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noreferrer"
+                  >Google Cloud Console</a
+                >.
+              </div>
+            </div>
+          </wa-callout>
+          <wa-input
+            label="Google Cloud project id"
+            placeholder="my-gcp-project-id"
+            .value=${this.aiConfig.googleProjectId}
+            @input=${event => {
+              this.aiConfig = { ...this.aiConfig, googleProjectId: event.target.value, connected: false };
+              this.aiConnected = false;
+            }}
+            @change=${() => this.persist({ triggerSync: false })}
+          ></wa-input>
+          <wa-select
+            label="Gemini model"
+            .value=${this.aiConfig.model}
+            @change=${event => {
+              this.aiConfig = { ...this.aiConfig, model: event.currentTarget.value, connected: false };
+              this.aiConnected = false;
+              this.persist({ triggerSync: false });
+            }}
+          >
+            <wa-option value="gemini-2.5-flash">gemini-2.5-flash (lower cost)</wa-option>
+            <wa-option value="gemini-2.5-pro">gemini-2.5-pro (higher quality)</wa-option>
+          </wa-select>
+          <div class="inline">
+            <wa-button variant="primary" @click=${() => this.connectAiProvider({ forceConsent: true })}
+              >${this.aiConnected ? 'Reconnect AI Provider' : 'Connect AI Provider'}</wa-button
+            >
+          </div>
+          ${this.aiFeedback ? html`<wa-callout>${this.aiFeedback}</wa-callout>` : html``}
+        </div>
+      </section>
+
+      <section class="section">
         <h2>Data</h2>
         <div class="stack">
           <div class="muted">Delete all local programs, sessions, and sync configuration from this device.</div>
@@ -2121,15 +2661,14 @@ class TrainingApp extends LitElement {
   }
 
   render() {
-    const tabItems = [
-      { id: 'programs', label: 'Programs', icon: 'table-list' },
-      { id: 'train', label: 'Train', icon: 'dumbbell' },
-      { id: 'progress', label: 'Progress', icon: 'chart-line' },
-      { id: 'settings', label: 'Settings', icon: 'gear' }
-    ];
-    const activeTabLabel = tabItems.find(item => item.id === this.activeTab)?.label || 'Programs';
-    const activePanel =
-      this.activeTab === 'train'
+    const tabItems = TAB_ITEMS;
+    const activeTabLabel = labelFromTab(this.activeTab);
+    const showTrainSkeleton = this.activeTab === 'train' && !this.readyTrainPanel;
+    const showProgressSkeleton = this.activeTab === 'progress' && !this.readyProgressPanel;
+    const showPanelSkeleton = showTrainSkeleton || showProgressSkeleton;
+    const activePanel = showPanelSkeleton
+      ? this.renderPanelSkeleton(this.activeTab)
+      : this.activeTab === 'train'
         ? this.renderTraining()
         : this.activeTab === 'progress'
           ? this.renderProgress()
@@ -2145,9 +2684,9 @@ class TrainingApp extends LitElement {
             </div>
           `
         : html``}
-      <main>
+      <main class=${this.showStartupSpinner ? 'is-starting' : ''}>
         <header class="app-topbar">
-          <h1>${activeTabLabel}</h1>
+          <h1 class="app-title">${activeTabLabel}</h1>
           ${this.isStandalone || this.installHinted
             ? html``
             : html`<button class="badge install-badge" type="button" @click=${() => this.installApp()}>Install</button>`}
@@ -2187,7 +2726,9 @@ class TrainingApp extends LitElement {
             `
           : html``}
 
-        ${activePanel}
+        <section class="app-panel" data-tab=${this.activeTab}>
+          ${activePanel}
+        </section>
 
         <footer>
           <div>Exercise data: public open-source API. Cache refreshes weekly for offline support.</div>
@@ -2198,8 +2739,9 @@ class TrainingApp extends LitElement {
           <button
             class="tab-bar-btn ${this.activeTab === item.id ? 'is-active' : ''}"
             type="button"
+            aria-current=${this.activeTab === item.id ? 'page' : 'false'}
             @click=${() => {
-              this.activeTab = item.id;
+              this.setActiveTab(item.id, { pushHistory: true, transition: true });
             }}
           >
             <wa-icon name=${item.icon}></wa-icon>

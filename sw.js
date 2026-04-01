@@ -1,4 +1,4 @@
-const CACHE_NAME = 'training-app-v5';
+const CACHE_NAME = 'training-app-v6';
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -53,7 +53,16 @@ self.addEventListener('fetch', event => {
   const isKnownCdn = url.origin === 'https://cdn.jsdelivr.net';
   if (!isSameOrigin && !isKnownCdn) return;
 
-  const appShellPaths = new Set(['/', '/index.html', '/app.js', '/styles.css']);
+  const appShellPaths = new Set([
+    '/',
+    '/index.html',
+    '/programs',
+    '/train',
+    '/progress',
+    '/settings',
+    '/app.js',
+    '/styles.css'
+  ]);
   const isNavigate = request.mode === 'navigate';
   const isAppShell = appShellPaths.has(url.pathname);
 
@@ -61,6 +70,9 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       fetch(request)
         .then(response => {
+          if (isNavigate && !response.ok) {
+            return caches.match('/index.html').then(cached => cached || response);
+          }
           const copy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
           return response;

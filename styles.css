@@ -92,6 +92,7 @@ header p {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
+  transition: transform 140ms ease, background-color 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
 .tab-bar-btn wa-icon {
@@ -115,6 +116,100 @@ header p {
   color: #99f6e4;
   background: rgba(20, 184, 166, 0.15);
   border-color: rgba(94, 234, 212, 0.35);
+}
+
+.tab-bar-btn:active {
+  transform: scale(0.96);
+}
+
+.app-panel {
+  view-transition-name: app-panel;
+  min-height: 48vh;
+}
+
+.section-skeleton {
+  display: grid;
+  gap: 12px;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.16), rgba(148, 163, 184, 0.3), rgba(148, 163, 184, 0.16));
+  animation: skeleton-shimmer 1s linear infinite;
+}
+
+.skeleton-line-lg {
+  width: 64%;
+  height: 18px;
+}
+
+.skeleton-line-sm {
+  width: 38%;
+}
+
+main.is-starting .app-topbar,
+main.is-starting + .app-bottom-nav {
+  backdrop-filter: none;
+}
+
+::view-transition-old(app-panel),
+::view-transition-new(app-panel) {
+  animation-duration: 170ms;
+  animation-timing-function: ease;
+}
+
+::view-transition-old(app-panel) {
+  animation-name: panel-out;
+}
+
+::view-transition-new(app-panel) {
+  animation-name: panel-in;
+}
+
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes panel-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.995);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -220px 0;
+  }
+  100% {
+    background-position: 220px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-bar-btn,
+  .skeleton-line {
+    transition: none;
+    animation: none;
+  }
+
+  ::view-transition-old(app-panel),
+  ::view-transition-new(app-panel) {
+    animation: none;
+  }
 }
 
 .startup-overlay {
@@ -177,48 +272,96 @@ header p {
   flex: 0 0 auto;
 }
 
-.exercise-defaults-row {
-  display: grid;
-  grid-template-columns: 30px 30px 84px minmax(150px, 170px) 30px;
-  align-items: end;
-  justify-content: end;
+.exercise-plan-item {
+  align-items: flex-start;
+}
+
+.exercise-plan-row {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.exercise-plan-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.exercise-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  width: auto;
 }
 
-.exercise-defaults-row wa-input,
-.exercise-defaults-row wa-select,
-.exercise-defaults-row wa-button {
-  align-self: end;
-  margin: 0;
+.chip-row.is-inline {
+  margin-top: 0;
+  display: inline-flex;
 }
 
-.exercise-defaults-row .delete-icon-btn {
-  align-self: end;
+.exercise-plan-controls {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: start;
+  gap: 8px;
+}
+
+.exercise-plan-controls wa-input {
+  width: 84px;
+}
+
+.exercise-plan-controls .exercise-priority-select {
+  min-width: 170px;
+}
+
+.exercise-plan-controls .delete-icon-btn {
+  align-self: start;
+  margin-top: 24px;
   margin-bottom: 0;
 }
 
-.exercise-defaults-row .delete-icon-btn::part(base) {
+.exercise-plan-controls .delete-icon-btn::part(base) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.exercise-defaults-row .delete-icon-btn wa-icon {
+.exercise-plan-controls .delete-icon-btn wa-icon {
   display: block;
   line-height: 1;
   transform: translateY(0);
 }
 
+.exercise-move-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exercise-move-controls wa-button::part(base) {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+}
+
 @media (max-width: 860px) {
-  .exercise-defaults-row {
-    grid-template-columns: 30px 30px minmax(90px, 1fr);
-    justify-content: stretch;
+  .exercise-plan-controls {
+    flex-wrap: wrap;
     width: 100%;
   }
 
-  .exercise-defaults-row wa-select {
-    min-width: 0 !important;
+  .exercise-plan-controls .delete-icon-btn {
+    margin-top: 0;
+  }
+
+  .exercise-plan-controls .exercise-priority-select {
+    min-width: 0;
+    flex: 1 1 160px;
   }
 }
 
@@ -323,6 +466,17 @@ button.muscle-chip.is-selected {
   text-align: center;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.ai-plan-preview {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.ai-plan-workout {
+  align-items: flex-start;
 }
 
 .set-row {
@@ -463,6 +617,21 @@ wa-input::part(input),
 wa-input::part(form-control-input),
 wa-select::part(combobox),
 wa-textarea::part(textarea) {
+  color: var(--text);
+}
+
+wa-select::part(listbox) {
+  background: rgba(15, 23, 42, 0.96);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+wa-option {
+  color: var(--text);
+}
+
+wa-option::part(base),
+wa-option::part(label) {
   color: var(--text);
 }
 
