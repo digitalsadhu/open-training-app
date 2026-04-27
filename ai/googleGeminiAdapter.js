@@ -39,6 +39,15 @@ const PROGRAM_RESPONSE_SCHEMA = {
   }
 };
 
+const buildProgramResponseSchema = requiredWorkoutCount => {
+  const schema = JSON.parse(JSON.stringify(PROGRAM_RESPONSE_SCHEMA));
+  if (Number.isFinite(requiredWorkoutCount) && requiredWorkoutCount > 0) {
+    schema.properties.workouts.minItems = requiredWorkoutCount;
+    schema.properties.workouts.maxItems = requiredWorkoutCount;
+  }
+  return schema;
+};
+
 const extractTextFromResponse = payload => {
   const parts = payload?.candidates?.[0]?.content?.parts || [];
   const text = parts
@@ -261,9 +270,10 @@ Content to repair:
 ${String(originalOutput || '')}
 `.trim();
 
-const buildFreshStrictPrompt = originalPrompt => `
+const buildFreshStrictPrompt = (originalPrompt, requiredWorkoutCount = 0) => `
 Return valid JSON only for this request, matching the schema exactly.
 No markdown, no commentary.
+${requiredWorkoutCount > 0 ? `Return exactly ${requiredWorkoutCount} workouts.` : ''}
 
 Request:
 ${String(originalPrompt || '')}
@@ -304,7 +314,7 @@ export const createGoogleGeminiAdapter = ({ fetchImpl = globalThis.fetch, tokenP
     return normalized;
   },
 
-  async generateProgramPlan(config, { prompt }) {
+  async generateProgramPlan(config, { prompt, requiredWorkoutCount = 0 }) {
     const normalized = this.validateConfig(config);
     const token = await tokenProvider({
       clientId: normalized.clientId,
@@ -312,6 +322,7 @@ export const createGoogleGeminiAdapter = ({ fetchImpl = globalThis.fetch, tokenP
     });
 
     const endpoint = `${GEMINI_API_BASE}/models/${encodeURIComponent(normalized.model)}:generateContent`;
+    const responseSchema = buildProgramResponseSchema(requiredWorkoutCount);
     const runGenerate = async (textPrompt, temperature = 0.4, useSchema = true) => {
       const response = await fetchImpl(endpoint, {
         method: 'POST',
@@ -324,7 +335,7 @@ export const createGoogleGeminiAdapter = ({ fetchImpl = globalThis.fetch, tokenP
           contents: [{ role: 'user', parts: [{ text: String(textPrompt || '') }] }],
           generationConfig: {
             responseMimeType: 'application/json',
-            ...(useSchema ? { responseSchema: PROGRAM_RESPONSE_SCHEMA } : {}),
+            ...(useSchema ? { responseSchema } : {}),
             temperature,
             maxOutputTokens: 1800
           }
@@ -341,23 +352,40 @@ export const createGoogleGeminiAdapter = ({ fetchImpl = globalThis.fetch, tokenP
       return text;
     };
 
-    const rawText = await runGenerate(prompt, 0.35);
-
     let parsed = null;
-    try {
-      parsed = parseJsonBlock(rawText);
-    } catch {
-      const repairedText = await runGenerate(buildRepairPrompt(rawText), 0, false);
+    let lastError = null;
+    const attemptPrompts = [
+      String(prompt || ''),
+      buildFreshStrictPrompt(prompt, requiredWorkoutCount),
+      `${buildFreshStrictPrompt(prompt, requiredWorkoutCount)}\nReturn compact JSON in a single line.`
+    ];
+
+    for (const attemptPrompt of attemptPrompts) {
       try {
-        parsed = parseJsonBlock(repairedText);
-      } catch {
-        const strictRetryText = await runGenerate(buildFreshStrictPrompt(prompt), 0, true);
+        const rawText = await runGenerate(attemptPrompt, 0.25, true);
         try {
-          parsed = parseJsonBlock(strictRetryText);
-        } catch {
-          throw new Error('Gemini did not return valid JSON.');
+          parsed = parseJsonBlock(rawText);
+          if (parsed) break;
+        } catch (parseError) {
+          lastError = parseError;
+          const repairedText = await runGenerate(buildRepairPrompt(rawText), 0, false);
+          parsed = parseJsonBlock(repairedText);
+          if (parsed) break;
+        }
+      } catch (error) {
+        lastError = error;
+        try {
+          const repairedText = await runGenerate(buildRepairPrompt(attemptPrompt), 0, false);
+          parsed = parseJsonBlock(repairedText);
+          if (parsed) break;
+        } catch (repairError) {
+          lastError = repairError;
         }
       }
+    }
+
+    if (!parsed) {
+      throw new Error(lastError?.message || 'Gemini did not return valid JSON.');
     }
     if (!parsed || typeof parsed !== 'object') {
       throw new Error('Gemini response JSON was not an object.');

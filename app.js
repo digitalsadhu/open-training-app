@@ -322,6 +322,8 @@ class TrainingApp extends LitElement {
     aiPrompt: { state: true },
     aiGenerating: { state: true },
     aiDraftPlan: { state: true },
+    aiRefineInput: { state: true },
+    aiRefineHistory: { state: true },
     readyTrainPanel: { state: true },
     readyProgressPanel: { state: true }
   };
@@ -391,6 +393,8 @@ class TrainingApp extends LitElement {
     this.aiPrompt = DEFAULT_AI_PROMPT;
     this.aiGenerating = false;
     this.aiDraftPlan = null;
+    this.aiRefineInput = '';
+    this.aiRefineHistory = [];
     this.historyExerciseId = '';
     this.historyExerciseName = '';
     this.saveValidationError = '';
@@ -1161,6 +1165,55 @@ ${String(userPrompt || '').trim()}
 `.trim();
   }
 
+  buildAiRefinementPrompt(userMessage, currentPlan, defaultWorkoutCount) {
+    const request = String(userMessage || '').trim();
+    const serializedPlan = JSON.stringify(currentPlan, null, 2);
+    return `
+You are refining an existing strength training program for a workout app.
+
+Return only valid JSON (no markdown, no commentary) with this exact shape:
+{
+  "programName": "string",
+  "notes": "string",
+  "workouts": [
+    {
+      "name": "string",
+      "exercises": [
+        {
+          "name": "string",
+          "defaultSets": 3,
+          "trainingPriority": "strength" | "hypertrophy",
+          "muscleGroups": ["Chest"]
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+- Keep names concise.
+- Use realistic gym exercises.
+- Use "strength" or "hypertrophy" for each exercise trainingPriority.
+- Keep 4 to 8 exercises per workout.
+- Unless the user explicitly asks to change day count, keep exactly ${defaultWorkoutCount} workouts.
+
+Current program JSON:
+${serializedPlan}
+
+User refinement request:
+${request}
+`.trim();
+  }
+
+  buildAiRefineSummary(previousPlan, nextPlan) {
+    const previousCount = previousPlan?.workouts?.length || 0;
+    const nextCount = nextPlan?.workouts?.length || 0;
+    if (previousCount !== nextCount) {
+      return `Updated plan from ${previousCount} to ${nextCount} workouts.`;
+    }
+    return `Updated plan with ${nextCount} workouts.`;
+  }
+
   normalizeAiProgramPlan(rawPlan, { requestedWorkoutCount = 0 } = {}) {
     const plan = rawPlan && typeof rawPlan === 'object' ? rawPlan : {};
     const programName = String(plan.programName || plan.name || '').trim();
@@ -1273,7 +1326,7 @@ ${String(userPrompt || '').trim()}
           projectId: this.aiConfig.googleProjectId,
           model: this.aiConfig.model
         },
-        { prompt }
+        { prompt, requiredWorkoutCount: requestedWorkoutCount }
       );
       let normalized = this.normalizeAiProgramPlan(rawPlan, { requestedWorkoutCount });
       if (requestedWorkoutCount > 0 && normalized.workouts.length !== requestedWorkoutCount) {
@@ -1288,7 +1341,7 @@ ${String(userPrompt || '').trim()}
             projectId: this.aiConfig.googleProjectId,
             model: this.aiConfig.model
           },
-          { prompt: correctionPrompt }
+          { prompt: correctionPrompt, requiredWorkoutCount: requestedWorkoutCount }
         );
         normalized = this.normalizeAiProgramPlan(correctedRawPlan, { requestedWorkoutCount });
       }
@@ -1296,10 +1349,80 @@ ${String(userPrompt || '').trim()}
         throw new Error(`AI returned ${normalized.workouts.length} workouts. Requested exactly ${requestedWorkoutCount}. Try generating again.`);
       }
       this.aiDraftPlan = normalized;
+      this.aiRefineHistory = [];
+      this.aiRefineInput = '';
       this.aiFeedback = 'AI plan ready. Review it below and apply when ready.';
     } catch (error) {
       this.aiFeedback = error?.message || String(error);
       this.aiDraftPlan = null;
+      this.aiRefineHistory = [];
+      this.aiRefineInput = '';
+    } finally {
+      this.aiGenerating = false;
+    }
+  }
+
+  async refineProgramWithAi() {
+    const userMessage = String(this.aiRefineInput || '').trim();
+    if (!userMessage) {
+      this.aiFeedback = 'Enter a refinement request first.';
+      return;
+    }
+    if (!this.aiDraftPlan) {
+      this.aiFeedback = 'Generate a plan first before refining.';
+      return;
+    }
+    if (this.aiGenerating) return;
+
+    this.aiGenerating = true;
+    this.aiFeedback = '';
+    const previousPlan = this.aiDraftPlan;
+    try {
+      if (!this.aiConnected) {
+        const connected = await this.connectAiProvider({ forceConsent: false });
+        if (!connected) return;
+      }
+      const defaultWorkoutCount = previousPlan.workouts?.length || 0;
+      const requestedWorkoutCount = this.extractRequestedWorkoutCount(userMessage) || defaultWorkoutCount;
+      const prompt = this.buildAiRefinementPrompt(userMessage, previousPlan, defaultWorkoutCount);
+      const rawPlan = await this.aiAdapter.generateProgramPlan(
+        {
+          clientId: this.googleClientId,
+          projectId: this.aiConfig.googleProjectId,
+          model: this.aiConfig.model
+        },
+        { prompt, requiredWorkoutCount: requestedWorkoutCount }
+      );
+      let normalized = this.normalizeAiProgramPlan(rawPlan, { requestedWorkoutCount });
+      if (requestedWorkoutCount > 0 && normalized.workouts.length !== requestedWorkoutCount) {
+        const correctionPrompt = this.buildWorkoutCountCorrectionPrompt(
+          userMessage,
+          requestedWorkoutCount,
+          normalized.workouts.length
+        );
+        const correctedRawPlan = await this.aiAdapter.generateProgramPlan(
+          {
+            clientId: this.googleClientId,
+            projectId: this.aiConfig.googleProjectId,
+            model: this.aiConfig.model
+          },
+          { prompt: correctionPrompt, requiredWorkoutCount: requestedWorkoutCount }
+        );
+        normalized = this.normalizeAiProgramPlan(correctedRawPlan, { requestedWorkoutCount });
+      }
+      if (requestedWorkoutCount > 0 && normalized.workouts.length !== requestedWorkoutCount) {
+        throw new Error(`AI returned ${normalized.workouts.length} workouts. Requested exactly ${requestedWorkoutCount}. Try refining again.`);
+      }
+      this.aiDraftPlan = normalized;
+      this.aiRefineHistory = [
+        ...this.aiRefineHistory,
+        { role: 'user', text: userMessage },
+        { role: 'assistant', text: this.buildAiRefineSummary(previousPlan, normalized) }
+      ];
+      this.aiRefineInput = '';
+      this.aiFeedback = 'Plan updated from your follow-up request.';
+    } catch (error) {
+      this.aiFeedback = error?.message || String(error);
     } finally {
       this.aiGenerating = false;
     }
@@ -1338,12 +1461,16 @@ ${String(userPrompt || '').trim()}
     this.selectedProgramId = programId;
     this.selectedWorkoutId = workouts[0]?.id || '';
     this.aiDraftPlan = null;
+    this.aiRefineHistory = [];
+    this.aiRefineInput = '';
     this.aiFeedback = 'AI program added.';
     this.persist();
   }
 
   dismissAiDraftProgram() {
     this.aiDraftPlan = null;
+    this.aiRefineHistory = [];
+    this.aiRefineInput = '';
   }
 
   isAiProgramBuilderConfigured() {
@@ -1492,6 +1619,8 @@ ${String(userPrompt || '').trim()}
     this.aiFeedback = '';
     this.aiPrompt = DEFAULT_AI_PROMPT;
     this.aiDraftPlan = null;
+    this.aiRefineHistory = [];
+    this.aiRefineInput = '';
     this.historyExerciseId = '';
     this.historyExerciseName = '';
     this.saveValidationError = '';
@@ -1881,11 +2010,7 @@ ${String(userPrompt || '').trim()}
                                   <strong>${workout.name}</strong>
                                   <div class="muted">${workout.exercises.length} exercises</div>
                                   <div class="muted">
-                                    ${workout.exercises
-                                      .slice(0, 6)
-                                      .map(item => item.name)
-                                      .join(', ')}
-                                    ${workout.exercises.length > 6 ? '…' : ''}
+                                    ${workout.exercises.map(item => item.name).join(', ')}
                                   </div>
                                 </div>
                               </div>
@@ -1896,6 +2021,43 @@ ${String(userPrompt || '').trim()}
                           <wa-button variant="primary" @click=${() => this.applyAiDraftProgram()}
                             >Add This Program</wa-button
                           >
+                        </div>
+                        <div class="stack ai-refine-section">
+                          <h3 class="ai-refine-heading">Refine With Follow-up Chat</h3>
+                          ${this.aiRefineHistory.length > 0
+                            ? html`
+                                <div class="ai-chat-history">
+                                  ${this.aiRefineHistory.map(
+                                    message => html`
+                                      <div class="ai-chat-row ${message.role === 'user' ? 'is-user' : 'is-assistant'}">
+                                        <strong>${message.role === 'user' ? 'You' : 'AI'}</strong>
+                                        <div>${message.text}</div>
+                                      </div>
+                                    `
+                                  )}
+                                </div>
+                              `
+                            : html`<div class="muted">Ask follow-up changes like “swap deadlifts for RDLs” or “make day 2 shorter”.</div>`}
+                          <wa-textarea
+                            label="Follow-up request"
+                            rows="3"
+                            placeholder="Refine the current draft program..."
+                            .value=${this.aiRefineInput}
+                            @input=${event => {
+                              this.aiRefineInput = event.target.value;
+                            }}
+                            @keydown=${event => {
+                              if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                                this.refineProgramWithAi();
+                              }
+                            }}
+                          ></wa-textarea>
+                          <div class="inline">
+                            <wa-button
+                              ?disabled=${this.aiGenerating}
+                              @click=${() => this.refineProgramWithAi()}
+                            >${this.aiGenerating ? 'Updating...' : 'Send Follow-up'}</wa-button>
+                          </div>
                         </div>
                       </div>
                     `
