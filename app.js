@@ -28,6 +28,7 @@ import {
 } from './sync/index.js';
 import { createGoogleGeminiAdapter, DEFAULT_GEMINI_MODEL } from './ai/googleGeminiAdapter.js';
 import {
+  EXERCISE_SET_TYPES,
   addDraftSetState,
   addExerciseToWorkoutState,
   addWorkoutToProgramState,
@@ -36,6 +37,7 @@ import {
   lastEntryForExercise,
   logDraftSetState,
   moveExerciseInWorkoutState,
+  normalizeExerciseSetType,
   removeDraftSetState,
   removeExerciseFromWorkoutState,
   removeWorkoutFromProgramState,
@@ -160,6 +162,8 @@ const normalizePrograms = programs =>
           name: workout.name || 'Workout',
           exercises: (workout.exercises || []).map(exercise => ({
             ...exercise,
+            defaultTime: exercise.defaultTime ?? '',
+            setType: normalizeExerciseSetType(exercise.setType),
             trainingPriority: exercise.trainingPriority || null,
             muscleGroups: normalizeMuscleGroups(exercise.muscleGroups)
           }))
@@ -219,6 +223,28 @@ const formatTimestamp = value =>
         minute: '2-digit'
       })
     : 'Never';
+const setTypeUsesReps = setType => normalizeExerciseSetType(setType) === EXERCISE_SET_TYPES.REPS_WEIGHT;
+const setTypeUsesTime = setType => {
+  const normalized = normalizeExerciseSetType(setType);
+  return normalized === EXERCISE_SET_TYPES.TIME || normalized === EXERCISE_SET_TYPES.TIME_WEIGHT;
+};
+const setTypeUsesWeight = setType => {
+  const normalized = normalizeExerciseSetType(setType);
+  return normalized === EXERCISE_SET_TYPES.REPS_WEIGHT || normalized === EXERCISE_SET_TYPES.TIME_WEIGHT;
+};
+const inferSetTypeFromSet = set => {
+  const hasTime = set?.time !== '' && set?.time !== null && set?.time !== undefined;
+  const hasWeight = set?.weight !== '' && set?.weight !== null && set?.weight !== undefined;
+  if (hasTime && hasWeight) return EXERCISE_SET_TYPES.TIME_WEIGHT;
+  if (hasTime) return EXERCISE_SET_TYPES.TIME;
+  return EXERCISE_SET_TYPES.REPS_WEIGHT;
+};
+const resolveEntrySetType = entry => normalizeExerciseSetType(entry?.setType || inferSetTypeFromSet((entry?.sets || [])[0]));
+const formatSetSummary = (set, setType) => {
+  if (setTypeUsesReps(setType)) return `${formatNumber(set.reps)} reps @ ${formatNumber(set.weight)} kg`;
+  if (setTypeUsesTime(setType) && setTypeUsesWeight(setType)) return `${formatNumber(set.time)} sec @ ${formatNumber(set.weight)} kg`;
+  return `${formatNumber(set.time)} sec`;
+};
 
 const normalizeSearchText = value =>
   String(value || '')
@@ -1442,7 +1468,9 @@ ${request}
         name: exercise.name,
         defaultSets: exercise.defaultSets,
         defaultReps: '',
+        defaultTime: '',
         defaultWeight: '',
+        setType: EXERCISE_SET_TYPES.REPS_WEIGHT,
         trainingPriority: exercise.trainingPriority,
         muscleGroups: normalizeMuscleGroups(exercise.muscleGroups)
       }))
@@ -1689,7 +1717,13 @@ ${request}
   resolveSpinnerValue(set, field, rawValue, inputType) {
     if (rawValue === '' || rawValue === null || rawValue === undefined) return rawValue;
     const currentValue = set[field];
-    const targetField = field === 'reps' ? 'targetReps' : 'targetWeight';
+    const targetFieldByField = {
+      reps: 'targetReps',
+      time: 'targetTime',
+      weight: 'targetWeight'
+    };
+    const targetField = targetFieldByField[field] || '';
+    if (!targetField) return rawValue;
     const targetValue = set[targetField];
     const parsedRaw = Number(rawValue);
     const parsedTarget = Number(targetValue);
@@ -1728,38 +1762,49 @@ ${request}
     const finalizedEntries = this.draftSession.entries
       .filter(entry => !entry.skipped)
       .map(entry => {
+        const setType = resolveEntrySetType(entry);
         const loggedSets = entry.sets
           .filter(set => set.logged)
-          .map(set => ({ reps: set.reps, weight: set.weight }));
+          .map(set => ({
+            reps: set.reps,
+            time: set.time,
+            weight: set.weight
+          }));
         const exercise = workout?.exercises?.find(item => item.id === entry.exerciseId) || {
           id: entry.exerciseId,
-          defaultSets: loggedSets.length || 1
+          defaultSets: loggedSets.length || 1,
+          setType
         };
         const previous = lastEntryForExercise(this.sessions, entry.exerciseId, this.draftSession.workoutId);
-        const progression = computeProgressionForEntry({
-          draftEntry: entry,
-          loggedSets,
-          exercise,
-          previousEntry: previous,
-          trainingPriority: this.trainingPriority
-        });
+        const progression = setTypeUsesReps(setType)
+          ? computeProgressionForEntry({
+            draftEntry: entry,
+            loggedSets,
+            exercise,
+            previousEntry: previous,
+            trainingPriority: this.trainingPriority
+          })
+          : null;
 
         return {
           ...entry,
+          setType,
           sets: loggedSets,
-          progression: {
-            decision: progression.decision,
-            sessionSuccess: progression.sessionSuccess,
-            topReached: progression.topReached,
-            successfulSets: progression.successfulSets,
-            requiredSets: progression.requiredSets,
-            failStreakAfter: progression.failStreakAfter,
-            nextTargetReps: progression.nextTargetReps,
-            nextTargetWeight: progression.nextTargetWeight,
-            repRangeMin: progression.config.repRangeMin,
-            repRangeMax: progression.config.repRangeMax,
-            weightStepKg: progression.config.weightStepKg
-          }
+          progression: progression
+            ? {
+              decision: progression.decision,
+              sessionSuccess: progression.sessionSuccess,
+              topReached: progression.topReached,
+              successfulSets: progression.successfulSets,
+              requiredSets: progression.requiredSets,
+              failStreakAfter: progression.failStreakAfter,
+              nextTargetReps: progression.nextTargetReps,
+              nextTargetWeight: progression.nextTargetWeight,
+              repRangeMin: progression.config.repRangeMin,
+              repRangeMax: progression.config.repRangeMax,
+              weightStepKg: progression.config.weightStepKg
+            }
+            : null
         };
       });
     this.sessions = [
@@ -2240,6 +2285,22 @@ ${request}
                                   this.updateWorkoutDefaults(program.id, selectedWorkout.id, item.id, 'defaultSets', event.target.value)}
                               ></wa-input>
                               <wa-select
+                                label="Set Type"
+                                .value=${normalizeExerciseSetType(item.setType)}
+                                @change=${event =>
+                                  this.updateWorkoutDefaults(
+                                    program.id,
+                                    selectedWorkout.id,
+                                    item.id,
+                                    'setType',
+                                    event.currentTarget.value
+                                  )}
+                              >
+                                <wa-option value=${EXERCISE_SET_TYPES.REPS_WEIGHT}>Reps + Weight</wa-option>
+                                <wa-option value=${EXERCISE_SET_TYPES.TIME}>Time</wa-option>
+                                <wa-option value=${EXERCISE_SET_TYPES.TIME_WEIGHT}>Time + Weight</wa-option>
+                              </wa-select>
+                              <wa-select
                                 class="exercise-priority-select"
                                 label="Priority"
                                 .value=${item.trainingPriority || ''}
@@ -2345,46 +2406,79 @@ ${request}
                                 </div>
                               </div>
                               ${entry.sets.map(
-                                (set, index) => html`
+                                (set, index) => {
+                                  const setType = resolveEntrySetType(entry);
+                                  return html`
                                   <div class="set-row">
-                                    <wa-input
-                                      type="number"
-                                      size="small"
-                                      label="Reps"
-                                      aria-label="Reps"
-                                      .value=${set.reps}
-                                      placeholder=${set.targetReps}
-                                      ?disabled=${entry.skipped}
-                                      @input=${event => {
-                                        const nextValue = this.resolveSpinnerValue(
-                                          set,
-                                          'reps',
-                                          event.target.value,
-                                          event.inputType
-                                        );
-                                        event.target.value = nextValue;
-                                        this.updateDraftSet(entry.exerciseId, index, 'reps', nextValue);
-                                      }}
-                                    ></wa-input>
-                                    <wa-input
-                                      type="number"
-                                      size="small"
-                                      label="Weight"
-                                      aria-label="Weight"
-                                      .value=${set.weight}
-                                      placeholder=${set.targetWeight}
-                                      ?disabled=${entry.skipped}
-                                      @input=${event => {
-                                        const nextValue = this.resolveSpinnerValue(
-                                          set,
-                                          'weight',
-                                          event.target.value,
-                                          event.inputType
-                                        );
-                                        event.target.value = nextValue;
-                                        this.updateDraftSet(entry.exerciseId, index, 'weight', nextValue);
-                                      }}
-                                    ></wa-input>
+                                    ${setTypeUsesReps(setType)
+                                      ? html`
+                                          <wa-input
+                                            type="number"
+                                            size="small"
+                                            label="Reps"
+                                            aria-label="Reps"
+                                            .value=${set.reps}
+                                            placeholder=${set.targetReps}
+                                            ?disabled=${entry.skipped}
+                                            @input=${event => {
+                                              const nextValue = this.resolveSpinnerValue(
+                                                set,
+                                                'reps',
+                                                event.target.value,
+                                                event.inputType
+                                              );
+                                              event.target.value = nextValue;
+                                              this.updateDraftSet(entry.exerciseId, index, 'reps', nextValue);
+                                            }}
+                                          ></wa-input>
+                                        `
+                                      : html``}
+                                    ${setTypeUsesTime(setType)
+                                      ? html`
+                                          <wa-input
+                                            type="number"
+                                            size="small"
+                                            label="Time (sec)"
+                                            aria-label="Time in seconds"
+                                            .value=${set.time}
+                                            placeholder=${set.targetTime}
+                                            ?disabled=${entry.skipped}
+                                            @input=${event => {
+                                              const nextValue = this.resolveSpinnerValue(
+                                                set,
+                                                'time',
+                                                event.target.value,
+                                                event.inputType
+                                              );
+                                              event.target.value = nextValue;
+                                              this.updateDraftSet(entry.exerciseId, index, 'time', nextValue);
+                                            }}
+                                          ></wa-input>
+                                        `
+                                      : html``}
+                                    ${setTypeUsesWeight(setType)
+                                      ? html`
+                                          <wa-input
+                                            type="number"
+                                            size="small"
+                                            label="Weight"
+                                            aria-label="Weight"
+                                            .value=${set.weight}
+                                            placeholder=${set.targetWeight}
+                                            ?disabled=${entry.skipped}
+                                            @input=${event => {
+                                              const nextValue = this.resolveSpinnerValue(
+                                                set,
+                                                'weight',
+                                                event.target.value,
+                                                event.inputType
+                                              );
+                                              event.target.value = nextValue;
+                                              this.updateDraftSet(entry.exerciseId, index, 'weight', nextValue);
+                                            }}
+                                          ></wa-input>
+                                        `
+                                      : html``}
                                     <wa-button
                                       class="log-set-btn"
                                       size="small"
@@ -2403,7 +2497,8 @@ ${request}
                                       <wa-icon name="xmark" label="Delete set"></wa-icon>
                                     </wa-button>
                                   </div>
-                                `
+                                `;
+                                }
                               )}
                               <div class="inline">
                                 <wa-button
@@ -2434,7 +2529,7 @@ ${request}
                           : html``}
                       </div>
                     `
-                  : html`<div class="muted">Start a session to log sets and weights.</div>`}
+                  : html`<div class="muted">Start a session to log sets.</div>`}
               </div>
             `
           : html`<div class="muted">Create a program and workout first to start training.</div>`}
@@ -2459,7 +2554,7 @@ ${request}
                         <strong>${formatDate(item.date)} · ${item.workoutName}</strong>
                         <div class="muted">
                           ${item.sets
-                            .map(set => `${formatNumber(set.reps)} reps @ ${formatNumber(set.weight)} kg`)
+                            .map(set => formatSetSummary(set, resolveEntrySetType(item)))
                             .join(' · ')}
                         </div>
                       </div>
@@ -2531,22 +2626,32 @@ ${request}
                               const entry = session.entries.find(
                                 item => item.name === this.selectedExercise
                               );
-                              const best = entry.sets.reduce(
-                                (max, set) =>
-                                  Math.max(max, (Number(set.weight) || 0) * (Number(set.reps) || 0)),
-                                0
-                              );
+                              const setType = resolveEntrySetType(entry);
+                              const best = entry.sets.reduce((max, set) => {
+                                if (setTypeUsesReps(setType)) {
+                                  return Math.max(max, (Number(set.weight) || 0) * (Number(set.reps) || 0));
+                                }
+                                if (setTypeUsesTime(setType) && setTypeUsesWeight(setType)) {
+                                  return Math.max(max, (Number(set.weight) || 0) * (Number(set.time) || 0));
+                                }
+                                return Math.max(max, Number(set.time) || 0);
+                              }, 0);
+                              const bestLabel = setTypeUsesReps(setType)
+                                ? `${best} volume`
+                                : setTypeUsesTime(setType) && setTypeUsesWeight(setType)
+                                  ? `${best} weighted-sec`
+                                  : `${best} sec`;
                               return html`
                                 <div class="list-item">
                                   <div>
                                     <strong>${formatDate(session.date)}</strong>
                                     <div class="muted">
                                       Sets: ${entry.sets
-                                        .map(set => `${formatNumber(set.reps)}x${formatNumber(set.weight)}`)
+                                        .map(set => formatSetSummary(set, setType))
                                         .join(', ')}
                                     </div>
                                   </div>
-                                  <div class="badge">${best} volume</div>
+                                  <div class="badge">${bestLabel}</div>
                                 </div>
                               `;
                             })}

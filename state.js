@@ -3,6 +3,19 @@ export const clampNumber = value => {
   const parsed = Number(value);
   return Number.isNaN(parsed) ? '' : parsed;
 };
+export const EXERCISE_SET_TYPES = {
+  REPS_WEIGHT: 'reps_weight',
+  TIME: 'time',
+  TIME_WEIGHT: 'time_weight'
+};
+export const normalizeExerciseSetType = value => {
+  if (value === EXERCISE_SET_TYPES.TIME) return EXERCISE_SET_TYPES.TIME;
+  if (value === EXERCISE_SET_TYPES.TIME_WEIGHT) return EXERCISE_SET_TYPES.TIME_WEIGHT;
+  return EXERCISE_SET_TYPES.REPS_WEIGHT;
+};
+const setTypeUsesReps = setType => setType === EXERCISE_SET_TYPES.REPS_WEIGHT;
+const setTypeUsesTime = setType => setType === EXERCISE_SET_TYPES.TIME || setType === EXERCISE_SET_TYPES.TIME_WEIGHT;
+const setTypeUsesWeight = setType => setType === EXERCISE_SET_TYPES.REPS_WEIGHT || setType === EXERCISE_SET_TYPES.TIME_WEIGHT;
 const UNCATEGORIZED_GROUP = 'Uncategorized';
 const normalizeMuscleGroups = groups => {
   const normalized = Array.from(
@@ -205,7 +218,9 @@ export const addExerciseToWorkoutState = (programs, programId, workoutId, exerci
               name: exercise.name,
               defaultSets: exercise.defaultSets || 3,
               defaultReps: '',
+              defaultTime: '',
               defaultWeight: '',
+              setType: normalizeExerciseSetType(exercise.setType),
               trainingPriority: exercise.trainingPriority || null,
               muscleGroups: normalizeMuscleGroups(exercise.muscleGroups)
             }
@@ -268,6 +283,8 @@ export const updateWorkoutDefaultsState = (programs, programId, workoutId, exerc
                   [field]:
                     field === 'trainingPriority'
                       ? value || null
+                      : field === 'setType'
+                        ? normalizeExerciseSetType(value)
                       : clampNumber(value)
                 }
               : item
@@ -292,35 +309,48 @@ export const startSessionState = (program, workoutId, sessions, createId, dateIS
   if (!workout) return null;
 
   const entries = workout.exercises.map(exercise => {
+    const setType = normalizeExerciseSetType(exercise.setType);
     const last = lastEntryForExercise(sessions, exercise.id, workout.id);
     const config = getProgressionConfig(exercise, trainingPriority);
     const setCount = Math.max(1, Number(exercise.defaultSets) || 1);
     const lastSets = Array.isArray(last?.sets) ? last.sets : [];
     const fallbackLastReps = toNumberOr(lastSets[0]?.reps, NaN);
+    const fallbackLastTime = clampNumber(lastSets[0]?.time);
     const fallbackLastWeight = clampNumber(lastSets[0]?.weight);
 
-    const nextTargetReps =
-      toNumberOr(last?.progression?.nextTargetReps, NaN) ||
-      fallbackLastReps ||
-      config.repRangeMin;
+    const nextTargetReps = setTypeUsesReps(setType)
+      ? (toNumberOr(last?.progression?.nextTargetReps, NaN) ||
+        fallbackLastReps ||
+        toNumberOr(exercise.defaultReps, NaN) ||
+        config.repRangeMin)
+      : '';
+
+    const defaultTime = clampNumber(exercise.defaultTime);
+    const nextTargetTime = setTypeUsesTime(setType)
+      ? (fallbackLastTime !== '' ? fallbackLastTime : defaultTime)
+      : '';
 
     const defaultWeight = clampNumber(exercise.defaultWeight);
     const nextTargetWeightFromHistory = clampNumber(last?.progression?.nextTargetWeight);
-    const nextTargetWeight =
-      nextTargetWeightFromHistory !== ''
+    const nextTargetWeight = setTypeUsesWeight(setType)
+      ? (nextTargetWeightFromHistory !== ''
         ? nextTargetWeightFromHistory
         : fallbackLastWeight !== ''
           ? fallbackLastWeight
-          : defaultWeight;
+          : defaultWeight)
+      : '';
 
     return {
       exerciseId: exercise.id,
       name: exercise.name,
+      setType,
       muscleGroups: normalizeMuscleGroups(exercise.muscleGroups),
       sets: Array.from({ length: setCount }, () => ({
         reps: '',
+        time: '',
         weight: '',
         targetReps: nextTargetReps,
+        targetTime: nextTargetTime,
         targetWeight: nextTargetWeight,
         logged: false
       }))
@@ -354,7 +384,7 @@ export const addDraftSetState = (draftSession, exerciseId) => {
     if (entry.exerciseId !== exerciseId) return entry;
     return {
       ...entry,
-      sets: [...entry.sets, { reps: '', weight: '', targetReps: '', targetWeight: '', logged: false }]
+      sets: [...entry.sets, { reps: '', time: '', weight: '', targetReps: '', targetTime: '', targetWeight: '', logged: false }]
     };
   });
   return { ...draftSession, entries: updatedEntries };
@@ -377,8 +407,9 @@ export const logDraftSetState = (draftSession, exerciseId, setIndex) => {
     const sets = entry.sets.map((set, index) => {
       if (index !== setIndex) return set;
       const reps = set.reps === '' ? set.targetReps : set.reps;
+      const time = set.time === '' ? set.targetTime : set.time;
       const weight = set.weight === '' ? set.targetWeight : set.weight;
-      return { ...set, reps, weight, logged: true };
+      return { ...set, reps, time, weight, logged: true };
     });
     return { ...entry, sets };
   });

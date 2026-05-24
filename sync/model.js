@@ -1,4 +1,14 @@
 export const SYNC_SCHEMA_VERSION = 1;
+const EXERCISE_SET_TYPES = {
+  REPS_WEIGHT: 'reps_weight',
+  TIME: 'time',
+  TIME_WEIGHT: 'time_weight'
+};
+const normalizeExerciseSetType = value => {
+  if (value === EXERCISE_SET_TYPES.TIME) return EXERCISE_SET_TYPES.TIME;
+  if (value === EXERCISE_SET_TYPES.TIME_WEIGHT) return EXERCISE_SET_TYPES.TIME_WEIGHT;
+  return EXERCISE_SET_TYPES.REPS_WEIGHT;
+};
 const UNCATEGORIZED_GROUP = 'Uncategorized';
 const normalizeMuscleGroups = groups => {
   const normalized = Array.from(
@@ -184,7 +194,9 @@ const indexLocalRecords = state => {
           name: exercise.name,
           defaultSets: Number(exercise.defaultSets) || 0,
           defaultReps: exercise.defaultReps ?? '',
+          defaultTime: exercise.defaultTime ?? '',
           defaultWeight: exercise.defaultWeight ?? '',
+          setType: normalizeExerciseSetType(exercise.setType),
           muscleGroups: normalizeMuscleGroups(exercise.muscleGroups),
           order: exerciseOrder,
           updatedAt:
@@ -293,7 +305,9 @@ export const syncDocToState = (state, syncDoc) => {
       name: exercise.name,
       defaultSets: Number(exercise.defaultSets) || 0,
       defaultReps: exercise.defaultReps ?? '',
+      defaultTime: exercise.defaultTime ?? '',
       defaultWeight: exercise.defaultWeight ?? '',
+      setType: normalizeExerciseSetType(exercise.setType),
       muscleGroups: normalizeMuscleGroups(exercise.muscleGroups),
       updatedAt: Number(exercise.updatedAt) || Date.now(),
       deletedAt: null,

@@ -111,6 +111,20 @@ test('updateWorkoutDefaultsState updates sets', () => {
   assert.equal(withSets[0].workouts[0].exercises[0].defaultSets, 4);
 });
 
+test('updateWorkoutDefaultsState updates set type', () => {
+  const programs = [{
+    id: 'p1',
+    name: 'Program',
+    workouts: [{
+      id: 'w1',
+      name: 'Push',
+      exercises: [{ id: 'e1', name: 'Press' }]
+    }]
+  }];
+  const withSetType = updateWorkoutDefaultsState(programs, 'p1', 'w1', 'e1', 'setType', 'time_weight');
+  assert.equal(withSetType[0].workouts[0].exercises[0].setType, 'time_weight');
+});
+
 test('removeWorkoutFromProgramState removes workout', () => {
   const programs = [{
     id: 'p1',
@@ -205,6 +219,32 @@ test('startSessionState respects per-exercise priority override over global', ()
   assert.equal(draft.entries[0].sets[0].targetReps, 3);
 });
 
+test('startSessionState builds time targets for time-only exercises', () => {
+  const program = {
+    id: 'p1',
+    name: 'Program',
+    workouts: [{ id: 'w1', name: 'Conditioning', exercises: [{ id: 'e1', name: 'Plank', defaultSets: 2, setType: 'time', defaultTime: 45 }] }]
+  };
+  const draft = startSessionState(program, 'w1', [], () => 's1', '2026-02-13');
+  assert.equal(draft.entries[0].setType, 'time');
+  assert.equal(draft.entries[0].sets[0].targetTime, 45);
+  assert.equal(draft.entries[0].sets[0].targetReps, '');
+  assert.equal(draft.entries[0].sets[0].targetWeight, '');
+});
+
+test('startSessionState builds time and weight targets for time+weight exercises', () => {
+  const program = {
+    id: 'p1',
+    name: 'Program',
+    workouts: [{ id: 'w1', name: 'Carry', exercises: [{ id: 'e1', name: 'Farmer Carry', defaultSets: 2, setType: 'time_weight', defaultTime: 60, defaultWeight: 24 }] }]
+  };
+  const draft = startSessionState(program, 'w1', [], () => 's1', '2026-02-13');
+  assert.equal(draft.entries[0].setType, 'time_weight');
+  assert.equal(draft.entries[0].sets[0].targetTime, 60);
+  assert.equal(draft.entries[0].sets[0].targetWeight, 24);
+  assert.equal(draft.entries[0].sets[0].targetReps, '');
+});
+
 test('draft set mutations adjust entries', () => {
   const draft = {
     id: 's1',
@@ -220,6 +260,16 @@ test('draft set mutations adjust entries', () => {
   assert.equal(logged.entries[0].sets[0].logged, true);
   const removed = removeDraftSetState(logged, 'e1', 0);
   assert.equal(removed.entries[0].sets.length, 1);
+});
+
+test('logDraftSetState fills target time when time is empty', () => {
+  const draft = {
+    id: 's1',
+    entries: [{ exerciseId: 'e1', name: 'Plank', sets: [{ time: '', targetTime: 60, logged: false }] }]
+  };
+  const logged = logDraftSetState(draft, 'e1', 0);
+  assert.equal(logged.entries[0].sets[0].time, 60);
+  assert.equal(logged.entries[0].sets[0].logged, true);
 });
 
 test('rep ranges map by training priority', () => {

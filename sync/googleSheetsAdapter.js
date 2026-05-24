@@ -19,7 +19,9 @@ const EXPORT_SHEETS = {
     'name',
     'default_sets',
     'default_reps',
+    'default_time',
     'default_weight',
+    'set_type',
     'muscle_groups',
     'order',
     'updated_at',
@@ -54,9 +56,11 @@ const EXPORT_SHEETS = {
     'exercise_id',
     'set_index',
     'reps',
+    'time',
     'weight',
     'logged',
     'target_reps',
+    'target_time',
     'target_weight'
   ]
 };
@@ -113,9 +117,11 @@ const toTabularRows = syncDoc => {
           exerciseId: entry.exerciseId,
           setIndex: index,
           reps: set.reps ?? '',
+          time: set.time ?? '',
           weight: set.weight ?? '',
           logged: set.logged ? 'true' : 'false',
           targetReps: set.targetReps ?? '',
+          targetTime: set.targetTime ?? '',
           targetWeight: set.targetWeight ?? ''
         });
       });
@@ -149,7 +155,9 @@ const toTabularRows = syncDoc => {
       item.name,
       item.defaultSets ?? '',
       item.defaultReps ?? '',
+      item.defaultTime ?? '',
       item.defaultWeight ?? '',
+      item.setType ?? '',
       serializeArrayField(item.muscleGroups),
       item.order || 0,
       item.updatedAt || 0,
@@ -184,9 +192,11 @@ const toTabularRows = syncDoc => {
       item.exerciseId,
       item.setIndex,
       item.reps,
+      item.time,
       item.weight,
       item.logged,
       item.targetReps,
+      item.targetTime,
       item.targetWeight
     ])
   };
