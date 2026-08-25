@@ -461,6 +461,14 @@ button.muscle-chip.is-selected {
   color: var(--text);
 }
 
+.visually-hidden-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .sync-or-divider {
   margin: 8px 0 2px;
   text-align: center;

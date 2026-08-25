@@ -11,37 +11,6 @@
       "name": "Week 1 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 63
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -52,23 +21,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 63
+              "targetWeight": 62.5
             }
           ]
         },
@@ -84,19 +53,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             },
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             },
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             },
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             }
           ]
         }
@@ -109,37 +78,6 @@
       "name": "Week 1 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -150,23 +88,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             }
           ]
         },
@@ -182,19 +120,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             }
           ]
         }
@@ -207,37 +145,6 @@
       "name": "Week 1 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -248,23 +155,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             }
           ]
         },
@@ -305,37 +212,6 @@
       "name": "Week 2 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -346,23 +222,23 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             }
           ]
         },
@@ -378,19 +254,19 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 98
+              "targetWeight": 97.5
             }
           ]
         }
@@ -403,37 +279,6 @@
       "name": "Week 2 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -444,23 +289,23 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             }
           ]
         },
@@ -501,37 +346,6 @@
       "name": "Week 2 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -542,23 +356,23 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             }
           ]
         },
@@ -574,19 +388,19 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             }
           ]
         }
@@ -599,41 +413,6 @@
       "name": "Week 3 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -644,27 +423,27 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             }
           ]
         },
@@ -709,41 +488,6 @@
       "name": "Week 3 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -754,27 +498,27 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             }
           ]
         },
@@ -790,23 +534,23 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             }
           ]
         }
@@ -819,41 +563,6 @@
       "name": "Week 3 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -864,27 +573,27 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             }
           ]
         },
@@ -900,23 +609,23 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             }
           ]
         }
@@ -929,33 +638,6 @@
       "name": "Week 4 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 2,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 63
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -966,19 +648,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 63
+              "targetWeight": 62.5
             }
           ]
         },
@@ -994,15 +676,15 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             },
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             },
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             }
           ]
         }
@@ -1015,33 +697,6 @@
       "name": "Week 4 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 2,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 68
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1052,19 +707,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 68
+              "targetWeight": 67.5
             }
           ]
         },
@@ -1080,15 +735,15 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             }
           ]
         }
@@ -1101,33 +756,6 @@
       "name": "Week 4 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 2,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 72
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1138,19 +766,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 72
+              "targetWeight": 72.5
             }
           ]
         },
@@ -1187,37 +815,6 @@
       "name": "Week 5 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 68
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1228,23 +825,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 68
+              "targetWeight": 67.5
             }
           ]
         },
@@ -1260,19 +857,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             }
           ]
         }
@@ -1285,37 +882,6 @@
       "name": "Week 5 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 72
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1326,23 +892,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 72
+              "targetWeight": 72.5
             }
           ]
         },
@@ -1383,37 +949,6 @@
       "name": "Week 5 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1424,23 +959,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             }
           ]
         },
@@ -1456,19 +991,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             }
           ]
         }
@@ -1481,41 +1016,6 @@
       "name": "Week 6 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1526,27 +1026,27 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             }
           ]
         },
@@ -1591,41 +1091,6 @@
       "name": "Week 6 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1636,27 +1101,27 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             }
           ]
         },
@@ -1672,23 +1137,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             }
           ]
         }
@@ -1701,41 +1166,6 @@
       "name": "Week 6 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1746,27 +1176,27 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             }
           ]
         },
@@ -1782,23 +1212,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             }
           ]
         }
@@ -1811,41 +1241,6 @@
       "name": "Week 7 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1856,27 +1251,27 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             }
           ]
         },
@@ -1892,23 +1287,23 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             }
           ]
         }
@@ -1921,41 +1316,6 @@
       "name": "Week 7 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -1966,27 +1326,27 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             }
           ]
         },
@@ -2002,23 +1362,23 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             }
           ]
         }
@@ -2031,41 +1391,6 @@
       "name": "Week 7 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2076,27 +1401,27 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             }
           ]
         },
@@ -2112,23 +1437,23 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             },
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             },
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             },
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             },
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             }
           ]
         }
@@ -2141,33 +1466,6 @@
       "name": "Week 8 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 2,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 63
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 63
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2178,19 +1476,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 63
+              "targetWeight": 62.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 63
+              "targetWeight": 62.5
             }
           ]
         },
@@ -2206,15 +1504,15 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             },
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             },
             {
               "targetReps": 2,
-              "targetWeight": 91
+              "targetWeight": 90
             }
           ]
         }
@@ -2227,33 +1525,6 @@
       "name": "Week 8 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 2,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 68
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2264,19 +1535,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 68
+              "targetWeight": 67.5
             }
           ]
         },
@@ -2292,15 +1563,15 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 98
+              "targetWeight": 97.5
             }
           ]
         }
@@ -2313,33 +1584,6 @@
       "name": "Week 8 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 2,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 72
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2350,19 +1594,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 72
+              "targetWeight": 72.5
             }
           ]
         },
@@ -2399,37 +1643,6 @@
       "name": "Week 9 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 68
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2440,23 +1653,23 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 68
+              "targetWeight": 67.5
             }
           ]
         },
@@ -2472,19 +1685,19 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 98
+              "targetWeight": 97.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 98
+              "targetWeight": 97.5
             }
           ]
         }
@@ -2497,37 +1710,6 @@
       "name": "Week 9 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2538,23 +1720,23 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             }
           ]
         },
@@ -2595,37 +1777,6 @@
       "name": "Week 9 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2636,23 +1787,23 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             }
           ]
         },
@@ -2668,19 +1819,19 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             }
           ]
         }
@@ -2693,41 +1844,6 @@
       "name": "Week 10 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 72
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2738,27 +1854,27 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 72
+              "targetWeight": 72.5
             }
           ]
         },
@@ -2803,41 +1919,6 @@
       "name": "Week 10 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 77
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2848,27 +1929,27 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 4,
-              "targetWeight": 77
+              "targetWeight": 77.5
             }
           ]
         },
@@ -2884,23 +1965,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 112
+              "targetWeight": 112.5
             }
           ]
         }
@@ -2913,41 +1994,6 @@
       "name": "Week 10 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 4,
-              "targetWeight": 81
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -2958,27 +2004,27 @@
           "sets": [
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 4,
-              "targetWeight": 81
+              "targetWeight": 80
             }
           ]
         },
@@ -2994,23 +2040,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 3,
-              "targetWeight": 119
+              "targetWeight": 120
             }
           ]
         }
@@ -3023,37 +2069,6 @@
       "name": "Week 11 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 77
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -3064,23 +2079,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             },
             {
               "targetReps": 3,
-              "targetWeight": 77
+              "targetWeight": 77.5
             }
           ]
         },
@@ -3096,19 +2111,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 112
+              "targetWeight": 112.5
             }
           ]
         }
@@ -3121,37 +2136,6 @@
       "name": "Week 11 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 81
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -3162,23 +2146,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 3,
-              "targetWeight": 81
+              "targetWeight": 80
             }
           ]
         },
@@ -3194,19 +2178,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             }
           ]
         }
@@ -3219,37 +2203,6 @@
       "name": "Week 11 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 3,
-              "targetWeight": 86
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -3260,23 +2213,23 @@
           "sets": [
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 3,
-              "targetWeight": 86
+              "targetWeight": 85
             }
           ]
         },
@@ -3292,19 +2245,19 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             },
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             },
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             },
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             }
           ]
         }
@@ -3317,29 +2270,6 @@
       "name": "Week 12 Day 1",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 2,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 81
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 81
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -3350,15 +2280,15 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 2,
-              "targetWeight": 81
+              "targetWeight": 80
             },
             {
               "targetReps": 2,
-              "targetWeight": 81
+              "targetWeight": 80
             }
           ]
         },
@@ -3374,11 +2304,11 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             },
             {
               "targetReps": 2,
-              "targetWeight": 119
+              "targetWeight": 120
             }
           ]
         }
@@ -3391,29 +2321,6 @@
       "name": "Week 12 Day 2",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 2,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 86
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 86
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -3424,15 +2331,15 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 2,
-              "targetWeight": 86
+              "targetWeight": 85
             },
             {
               "targetReps": 2,
-              "targetWeight": 86
+              "targetWeight": 85
             }
           ]
         },
@@ -3448,11 +2355,11 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             },
             {
               "targetReps": 2,
-              "targetWeight": 126
+              "targetWeight": 125
             }
           ]
         }
@@ -3465,29 +2372,6 @@
       "name": "Week 12 Day 3",
       "entries": [
         {
-          "name": "Squat",
-          "liftKey": "squat",
-          "setType": "reps_weight",
-          "muscleGroups": [
-            "Legs",
-            "Glutes"
-          ],
-          "sets": [
-            {
-              "targetReps": 2,
-              "targetWeight": 90
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 90
-            },
-            {
-              "targetReps": 2,
-              "targetWeight": 90
-            }
-          ]
-        },
-        {
           "name": "Bench Press",
           "liftKey": "bench",
           "setType": "reps_weight",
@@ -3522,11 +2406,11 @@
           "sets": [
             {
               "targetReps": 2,
-              "targetWeight": 133
+              "targetWeight": 132.5
             },
             {
               "targetReps": 2,
-              "targetWeight": 133
+              "targetWeight": 132.5
             }
           ]
         }

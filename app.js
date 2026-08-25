@@ -357,6 +357,7 @@ class TrainingApp extends LitElement {
     plannedProgramImportOpen: { state: true },
     plannedProgramImportJson: { state: true },
     plannedProgramImportError: { state: true },
+    plannedProgramImportFileName: { state: true },
     deleteProgramCandidateId: { state: true },
     readyTrainPanel: { state: true },
     readyProgressPanel: { state: true }
@@ -432,6 +433,7 @@ class TrainingApp extends LitElement {
     this.plannedProgramImportOpen = false;
     this.plannedProgramImportJson = '';
     this.plannedProgramImportError = '';
+    this.plannedProgramImportFileName = '';
     this.deleteProgramCandidateId = '';
     this.historyExerciseId = '';
     this.historyExerciseName = '';
@@ -1525,6 +1527,7 @@ ${request}
   closePlannedProgramImportDialog() {
     this.plannedProgramImportOpen = false;
     this.plannedProgramImportError = '';
+    this.plannedProgramImportFileName = '';
     const dialog = this.renderRoot.querySelector('#planned-program-import-dialog');
     if (!dialog || !dialog.open) return;
     if (typeof dialog.hide === 'function') {
@@ -1546,6 +1549,27 @@ ${request}
       this.persist();
     } catch (error) {
       this.plannedProgramImportError = error?.message || String(error);
+    }
+  }
+
+  openPlannedProgramFilePicker() {
+    const input = this.renderRoot.querySelector('#planned-program-json-file');
+    input?.click();
+  }
+
+  async loadPlannedProgramImportFile(event) {
+    const input = event.target;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    try {
+      this.plannedProgramImportFileName = file.name || 'Selected file';
+      this.plannedProgramImportJson = await file.text();
+      this.plannedProgramImportError = '';
+    } catch (error) {
+      this.plannedProgramImportFileName = '';
+      this.plannedProgramImportError = `Could not read selected file: ${error?.message || String(error)}`;
     }
   }
 
@@ -1719,6 +1743,7 @@ ${request}
     this.plannedProgramImportOpen = false;
     this.plannedProgramImportJson = '';
     this.plannedProgramImportError = '';
+    this.plannedProgramImportFileName = '';
     this.deleteProgramCandidateId = '';
     this.historyExerciseId = '';
     this.historyExerciseName = '';
@@ -2661,6 +2686,21 @@ ${request}
         }}
       >
         <div class="stack">
+          <input
+            id="planned-program-json-file"
+            class="visually-hidden-file-input"
+            type="file"
+            accept="application/json,.json"
+            @change=${event => this.loadPlannedProgramImportFile(event)}
+          />
+          <div class="inline">
+            <wa-button @click=${() => this.openPlannedProgramFilePicker()}>
+              Select JSON File
+            </wa-button>
+            ${this.plannedProgramImportFileName
+              ? html`<div class="muted">Selected: ${this.plannedProgramImportFileName}</div>`
+              : html`<div class="muted">Choose a planned-program JSON file or paste JSON below.</div>`}
+          </div>
           <wa-textarea
             label="Program JSON"
             rows="12"
