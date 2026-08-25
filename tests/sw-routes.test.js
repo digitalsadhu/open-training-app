@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 test('service worker caches and recognizes top-level app routes', async () => {
   const sw = await readFile(new URL('../sw.js', import.meta.url), 'utf-8');
-  assert.match(sw, /training-app-v6/);
+  assert.match(sw, /training-app-v7/);
   assert.match(sw, /'\/programs'/);
   assert.match(sw, /'\/train'/);
   assert.match(sw, /'\/progress'/);

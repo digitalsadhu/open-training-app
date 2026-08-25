@@ -8,6 +8,7 @@ export const EXERCISE_SET_TYPES = {
   TIME: 'time',
   TIME_WEIGHT: 'time_weight'
 };
+export const PLANNED_PROGRAM_TYPE = 'sequence';
 export const normalizeExerciseSetType = value => {
   if (value === EXERCISE_SET_TYPES.TIME) return EXERCISE_SET_TYPES.TIME;
   if (value === EXERCISE_SET_TYPES.TIME_WEIGHT) return EXERCISE_SET_TYPES.TIME_WEIGHT;
@@ -43,6 +44,203 @@ const roundToStep = (value, step) => {
   const safeStep = Math.max(0.01, Number(step) || 1);
   const rounded = Math.round(value / safeStep) * safeStep;
   return Number(rounded.toFixed(2));
+};
+
+const normalizeNameKey = value =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, '-');
+
+const toPositiveNumberOrBlank = value => {
+  if (value === '' || value === null || value === undefined) return '';
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : '';
+};
+
+const toPositiveIntegerOrBlank = value => {
+  const parsed = toPositiveNumberOrBlank(value);
+  return parsed === '' ? '' : Math.round(parsed);
+};
+
+const normalizeTrainingMaxesKg = value => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value)
+      .map(([key, raw]) => [String(key || '').trim(), toPositiveNumberOrBlank(raw)])
+      .filter(([key, raw]) => key && raw !== '')
+  );
+};
+
+const normalizeLoadRoundingKg = value => toPositiveNumberOrBlank(value) || 2.5;
+
+const makePlannedExerciseId = entry => {
+  const provided = String(entry?.exerciseId || entry?.id || '').trim();
+  if (provided) return provided;
+  const liftKey = String(entry?.liftKey || '').trim();
+  const nameKey = normalizeNameKey(entry?.name);
+  return `planned:${liftKey || nameKey || 'exercise'}`;
+};
+
+const normalizePlannedSet = (set, setType, sessionLabel, entryLabel, setIndex) => {
+  const targetReps = setTypeUsesReps(setType)
+    ? toPositiveIntegerOrBlank(set?.targetReps ?? set?.reps)
+    : '';
+  const targetTime = setTypeUsesTime(setType)
+    ? toPositiveNumberOrBlank(set?.targetTime ?? set?.time)
+    : '';
+  const targetWeight = setTypeUsesWeight(setType)
+    ? toPositiveNumberOrBlank(set?.targetWeight ?? set?.weight)
+    : '';
+  const percent = setTypeUsesWeight(setType)
+    ? toPositiveNumberOrBlank(set?.percent)
+    : '';
+
+  if (targetReps === '' && targetTime === '' && targetWeight === '' && percent === '') {
+    throw new Error(`${sessionLabel} ${entryLabel} set ${setIndex + 1} needs reps, time, targetWeight, or percent.`);
+  }
+
+  return {
+    targetReps,
+    targetTime,
+    targetWeight,
+    percent
+  };
+};
+
+const normalizePlannedEntry = (entry, sessionLabel, entryIndex) => {
+  const name = String(entry?.name || '').trim();
+  if (!name) {
+    throw new Error(`${sessionLabel} entry ${entryIndex + 1} is missing an exercise name.`);
+  }
+
+  const setType = normalizeExerciseSetType(entry?.setType);
+  const rawSets = Array.isArray(entry?.sets) ? entry.sets : [];
+  if (rawSets.length === 0) {
+    throw new Error(`${sessionLabel} ${name} needs at least one prescribed set.`);
+  }
+
+  const liftKey = String(entry?.liftKey || '').trim();
+  return {
+    id: String(entry?.id || makePlannedExerciseId(entry)),
+    exerciseId: makePlannedExerciseId(entry),
+    name,
+    liftKey,
+    setType,
+    muscleGroups: normalizeMuscleGroups(entry?.muscleGroups),
+    sets: rawSets.map((set, setIndex) => normalizePlannedSet(set || {}, setType, sessionLabel, name, setIndex))
+  };
+};
+
+const sortPlannedSessions = sessions =>
+  sessions.slice().sort((a, b) =>
+    Number(a.week) - Number(b.week) ||
+    Number(a.day) - Number(b.day) ||
+    Number(a.order || 0) - Number(b.order || 0)
+  );
+
+const parsePlannedProgramSource = rawPlan => {
+  if (typeof rawPlan !== 'string') return rawPlan && typeof rawPlan === 'object' ? rawPlan : {};
+  const trimmed = rawPlan.trim();
+  if (!trimmed) throw new Error('Paste planned program JSON before importing.');
+  try {
+    return JSON.parse(trimmed);
+  } catch (error) {
+    throw new Error(`Planned program JSON is invalid: ${error?.message || String(error)}`);
+  }
+};
+
+export const isPlannedProgram = program =>
+  program?.schedule?.type === PLANNED_PROGRAM_TYPE &&
+  Array.isArray(program.schedule.sessions);
+
+export const normalizePlannedProgramImport = (rawPlan, createId, now = Date.now()) => {
+  const plan = parsePlannedProgramSource(rawPlan);
+  const programName = String(plan.programName || plan.name || '').trim();
+  if (!programName) throw new Error('Planned program JSON needs a programName.');
+
+  const rawSessions = Array.isArray(plan.sessions)
+    ? plan.sessions
+    : Array.isArray(plan.schedule?.sessions)
+      ? plan.schedule.sessions
+      : [];
+  if (rawSessions.length === 0) {
+    throw new Error('Planned program JSON needs at least one session.');
+  }
+
+  const sessions = rawSessions.map((session, index) => {
+    const week = toPositiveIntegerOrBlank(session?.week);
+    const day = toPositiveIntegerOrBlank(session?.day);
+    if (week === '' || day === '') {
+      throw new Error(`Session ${index + 1} needs positive numeric week and day values.`);
+    }
+
+    const sessionLabel = `Week ${week} Day ${day}`;
+    const entries = Array.isArray(session?.entries) ? session.entries : [];
+    if (entries.length === 0) {
+      throw new Error(`${sessionLabel} needs at least one exercise entry.`);
+    }
+
+    return {
+      id: String(session?.id || createId()),
+      week,
+      day,
+      name: String(session?.name || sessionLabel).trim() || sessionLabel,
+      order: index,
+      entries: entries.map((entry, entryIndex) => normalizePlannedEntry(entry || {}, sessionLabel, entryIndex))
+    };
+  });
+
+  const sortedSessions = sortPlannedSessions(sessions);
+  const durationWeeks =
+    toPositiveIntegerOrBlank(plan.durationWeeks ?? plan.schedule?.durationWeeks) ||
+    Math.max(...sortedSessions.map(session => Number(session.week) || 0));
+
+  return {
+    id: String(plan.id || createId()),
+    name: programName,
+    notes: String(plan.notes || '').trim(),
+    workouts: [],
+    createdAt: Number(plan.createdAt) || now,
+    trainingMaxesKg: normalizeTrainingMaxesKg(plan.trainingMaxesKg),
+    loadRoundingKg: normalizeLoadRoundingKg(plan.loadRoundingKg),
+    schedule: {
+      type: PLANNED_PROGRAM_TYPE,
+      durationWeeks,
+      sessions: sortedSessions
+    }
+  };
+};
+
+export const createPlannedProgramState = (programs, rawPlan, createId, now = Date.now()) => {
+  const program = normalizePlannedProgramImport(rawPlan, createId, now);
+  return {
+    programs: [program, ...programs],
+    selectedProgramId: program.id,
+    selectedWorkoutId: '',
+    program
+  };
+};
+
+export const getCompletedPlannedSessionIds = (sessions, programId) =>
+  new Set(
+    (sessions || [])
+      .filter(session => session.programId === programId && session.plannedSessionId)
+      .map(session => String(session.plannedSessionId))
+  );
+
+export const getPlannedProgramProgress = (program, sessions) => {
+  const plannedSessions = isPlannedProgram(program) ? sortPlannedSessions(program.schedule.sessions || []) : [];
+  const completedIds = getCompletedPlannedSessionIds(sessions, program?.id);
+  const nextSession = plannedSessions.find(session => !completedIds.has(String(session.id))) || null;
+  return {
+    total: plannedSessions.length,
+    completed: plannedSessions.filter(session => completedIds.has(String(session.id))).length,
+    nextSession,
+    sessions: plannedSessions,
+    completedIds
+  };
 };
 
 export const getRepRangeForPriority = trainingPriority =>
@@ -364,6 +562,61 @@ export const startSessionState = (program, workoutId, sessions, createId, dateIS
     workoutName: workout.name,
     date: dateISO,
     entries,
+    notes: ''
+  };
+};
+
+const resolvePlannedTargetWeight = (program, entry, set) => {
+  const explicit = clampNumber(set?.targetWeight);
+  if (explicit !== '') return explicit;
+
+  const percent = toPositiveNumberOrBlank(set?.percent);
+  const liftKey = String(entry?.liftKey || '').trim();
+  const trainingMax = toPositiveNumberOrBlank(program?.trainingMaxesKg?.[liftKey]);
+  if (percent === '' || trainingMax === '') return '';
+
+  return roundToStep((trainingMax * percent) / 100, normalizeLoadRoundingKg(program?.loadRoundingKg));
+};
+
+export const startPlannedSessionState = (program, plannedSessionId, sessions, createId, dateISO) => {
+  if (!isPlannedProgram(program)) return null;
+
+  const progress = getPlannedProgramProgress(program, sessions);
+  const plannedSession = plannedSessionId
+    ? progress.sessions.find(session => session.id === plannedSessionId)
+    : progress.nextSession;
+  if (!plannedSession) return null;
+
+  return {
+    id: createId(),
+    programId: program.id,
+    workoutId: plannedSession.id,
+    workoutName: plannedSession.name,
+    plannedSessionId: plannedSession.id,
+    plannedWeek: plannedSession.week,
+    plannedDay: plannedSession.day,
+    date: dateISO,
+    entries: (plannedSession.entries || []).map(entry => {
+      const setType = normalizeExerciseSetType(entry.setType);
+      return {
+        exerciseId: entry.exerciseId || entry.id,
+        plannedEntryId: entry.id || entry.exerciseId,
+        name: entry.name,
+        liftKey: entry.liftKey || '',
+        setType,
+        muscleGroups: normalizeMuscleGroups(entry.muscleGroups),
+        sets: (entry.sets || []).map(set => ({
+          reps: '',
+          time: '',
+          weight: '',
+          targetReps: setTypeUsesReps(setType) ? clampNumber(set.targetReps) : '',
+          targetTime: setTypeUsesTime(setType) ? clampNumber(set.targetTime) : '',
+          targetWeight: setTypeUsesWeight(setType) ? resolvePlannedTargetWeight(program, entry, set) : '',
+          percent: set?.percent ?? '',
+          logged: false
+        }))
+      };
+    }),
     notes: ''
   };
 };

@@ -10,7 +10,19 @@ const defaultDocId = 'default';
 const TOKEN_CACHE_PREFIX = 'training-app:google-token:';
 
 const EXPORT_SHEETS = {
-  programs: ['id', 'name', 'notes', 'created_at', 'order', 'updated_at', 'deleted_at', 'source_device_id'],
+  programs: [
+    'id',
+    'name',
+    'notes',
+    'created_at',
+    'schedule_json',
+    'training_maxes_kg',
+    'load_rounding_kg',
+    'order',
+    'updated_at',
+    'deleted_at',
+    'source_device_id'
+  ],
   workouts: ['id', 'program_id', 'name', 'order', 'updated_at', 'deleted_at', 'source_device_id'],
   workout_exercises: [
     'id',
@@ -35,6 +47,9 @@ const EXPORT_SHEETS = {
     'workout_name',
     'date',
     'saved_at',
+    'planned_session_id',
+    'planned_week',
+    'planned_day',
     'notes',
     'entry_count',
     'updated_at',
@@ -61,7 +76,8 @@ const EXPORT_SHEETS = {
     'logged',
     'target_reps',
     'target_time',
-    'target_weight'
+    'target_weight',
+    'target_percent'
   ]
 };
 
@@ -122,7 +138,8 @@ const toTabularRows = syncDoc => {
           logged: set.logged ? 'true' : 'false',
           targetReps: set.targetReps ?? '',
           targetTime: set.targetTime ?? '',
-          targetWeight: set.targetWeight ?? ''
+          targetWeight: set.targetWeight ?? '',
+          percent: set.percent ?? ''
         });
       });
     });
@@ -134,6 +151,9 @@ const toTabularRows = syncDoc => {
       item.name,
       item.notes || '',
       item.createdAt || 0,
+      item.schedule || '',
+      item.trainingMaxesKg || {},
+      item.loadRoundingKg ?? '',
       item.order || 0,
       item.updatedAt || 0,
       item.deletedAt || '',
@@ -171,6 +191,9 @@ const toTabularRows = syncDoc => {
       item.workoutName || '',
       item.date || '',
       item.savedAt || 0,
+      item.plannedSessionId || '',
+      item.plannedWeek || '',
+      item.plannedDay || '',
       item.notes || '',
       Array.isArray(item.entries) ? item.entries.length : 0,
       item.updatedAt || 0,
@@ -197,7 +220,8 @@ const toTabularRows = syncDoc => {
       item.logged,
       item.targetReps,
       item.targetTime,
-      item.targetWeight
+      item.targetWeight,
+      item.percent
     ])
   };
 };

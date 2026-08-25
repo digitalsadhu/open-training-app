@@ -33,7 +33,10 @@ import {
   addExerciseToWorkoutState,
   addWorkoutToProgramState,
   computeProgressionForEntry,
+  createPlannedProgramState,
   createProgramState,
+  getPlannedProgramProgress,
+  isPlannedProgram,
   lastEntryForExercise,
   logDraftSetState,
   moveExerciseInWorkoutState,
@@ -41,6 +44,7 @@ import {
   removeDraftSetState,
   removeExerciseFromWorkoutState,
   removeWorkoutFromProgramState,
+  startPlannedSessionState,
   startSessionState,
   updateDraftSetState,
   updateWorkoutDefaultsState
@@ -350,6 +354,10 @@ class TrainingApp extends LitElement {
     aiDraftPlan: { state: true },
     aiRefineInput: { state: true },
     aiRefineHistory: { state: true },
+    plannedProgramImportOpen: { state: true },
+    plannedProgramImportJson: { state: true },
+    plannedProgramImportError: { state: true },
+    deleteProgramCandidateId: { state: true },
     readyTrainPanel: { state: true },
     readyProgressPanel: { state: true }
   };
@@ -421,6 +429,10 @@ class TrainingApp extends LitElement {
     this.aiDraftPlan = null;
     this.aiRefineInput = '';
     this.aiRefineHistory = [];
+    this.plannedProgramImportOpen = false;
+    this.plannedProgramImportJson = '';
+    this.plannedProgramImportError = '';
+    this.deleteProgramCandidateId = '';
     this.historyExerciseId = '';
     this.historyExerciseName = '';
     this.saveValidationError = '';
@@ -1505,6 +1517,37 @@ ${request}
     return Boolean(this.googleClientId && String(this.aiConfig.googleProjectId || '').trim() && this.aiConfig.connected);
   }
 
+  openPlannedProgramImportDialog() {
+    this.plannedProgramImportOpen = true;
+    this.plannedProgramImportError = '';
+  }
+
+  closePlannedProgramImportDialog() {
+    this.plannedProgramImportOpen = false;
+    this.plannedProgramImportError = '';
+    const dialog = this.renderRoot.querySelector('#planned-program-import-dialog');
+    if (!dialog || !dialog.open) return;
+    if (typeof dialog.hide === 'function') {
+      dialog.hide();
+    }
+    dialog.open = false;
+    dialog.removeAttribute('open');
+  }
+
+  importPlannedProgramFromJson() {
+    try {
+      const next = createPlannedProgramState(this.programs, this.plannedProgramImportJson, createId);
+      this.programs = next.programs;
+      this.selectedProgramId = next.selectedProgramId;
+      this.selectedWorkoutId = next.selectedWorkoutId;
+      this.plannedProgramImportJson = '';
+      this.plannedProgramImportError = '';
+      this.closePlannedProgramImportDialog();
+      this.persist();
+    } catch (error) {
+      this.plannedProgramImportError = error?.message || String(error);
+    }
+  }
 
   createProgram(name) {
     const next = createProgramState(this.programs, name, createId);
@@ -1513,6 +1556,30 @@ ${request}
     this.selectedProgramId = next.selectedProgramId;
     this.selectedWorkoutId = next.selectedWorkoutId;
     this.persist();
+  }
+
+  requestDeleteProgram(programId) {
+    const program = this.programs.find(item => item.id === programId);
+    if (!program) return;
+    this.deleteProgramCandidateId = programId;
+  }
+
+  closeDeleteProgramDialog() {
+    this.deleteProgramCandidateId = '';
+    const dialog = this.renderRoot.querySelector('#delete-program-dialog');
+    if (!dialog || !dialog.open) return;
+    if (typeof dialog.hide === 'function') {
+      dialog.hide();
+    }
+    dialog.open = false;
+    dialog.removeAttribute('open');
+  }
+
+  confirmDeleteProgram() {
+    const programId = this.deleteProgramCandidateId;
+    if (!programId) return;
+    this.deleteProgramCandidateId = '';
+    this.deleteProgram(programId);
   }
 
   deleteProgram(programId) {
@@ -1649,6 +1716,10 @@ ${request}
     this.aiDraftPlan = null;
     this.aiRefineHistory = [];
     this.aiRefineInput = '';
+    this.plannedProgramImportOpen = false;
+    this.plannedProgramImportJson = '';
+    this.plannedProgramImportError = '';
+    this.deleteProgramCandidateId = '';
     this.historyExerciseId = '';
     this.historyExerciseName = '';
     this.saveValidationError = '';
@@ -1676,6 +1747,42 @@ ${request}
       : null;
     this.saveValidationError = '';
     this.persist();
+  }
+
+  startPlannedSession(programId, plannedSessionId = '') {
+    const program = this.programs.find(item => item.id === programId);
+    const nextDraft = startPlannedSessionState(
+      program,
+      plannedSessionId,
+      this.sessions,
+      createId,
+      todayISO()
+    );
+    this.draftSession = nextDraft
+      ? {
+          ...nextDraft,
+          entries: nextDraft.entries.map(entry => ({
+            ...entry,
+            skipped: Boolean(entry.skipped)
+          }))
+        }
+      : null;
+    this.saveValidationError = '';
+    this.persist();
+    this.scrollToPageTopAfterUpdate();
+  }
+
+  scrollToPageTopAfterUpdate() {
+    this.updateComplete.then(() => {
+      try {
+        globalThis.scrollTo({
+          top: 0,
+          behavior: this.reduceMotionEnabled() ? 'auto' : 'smooth'
+        });
+      } catch {
+        globalThis.scrollTo?.(0, 0);
+      }
+    });
   }
 
   updateDraftSet(exerciseId, setIndex, field, value) {
@@ -1747,6 +1854,7 @@ ${request}
 
   saveSession() {
     if (!this.draftSession) return;
+    const isPlannedDraft = Boolean(this.draftSession.plannedSessionId);
     const hasExerciseWithoutLoggedSet = this.draftSession.entries.some(entry => {
       if (entry.skipped) return false;
       return !entry.sets.some(set => set.logged);
@@ -1768,7 +1876,11 @@ ${request}
           .map(set => ({
             reps: set.reps,
             time: set.time,
-            weight: set.weight
+            weight: set.weight,
+            targetReps: set.targetReps ?? '',
+            targetTime: set.targetTime ?? '',
+            targetWeight: set.targetWeight ?? '',
+            percent: set.percent ?? ''
           }));
         const exercise = workout?.exercises?.find(item => item.id === entry.exerciseId) || {
           id: entry.exerciseId,
@@ -1776,7 +1888,7 @@ ${request}
           setType
         };
         const previous = lastEntryForExercise(this.sessions, entry.exerciseId, this.draftSession.workoutId);
-        const progression = setTypeUsesReps(setType)
+        const progression = !isPlannedDraft && setTypeUsesReps(setType)
           ? computeProgressionForEntry({
             draftEntry: entry,
             loggedSets,
@@ -1915,8 +2027,161 @@ ${request}
     this.persist();
   }
 
+  renderDraftSession() {
+    if (!this.draftSession) return html`<div class="muted">Start a session to log sets.</div>`;
+    return html`
+      <div class="stack">
+        ${this.draftSession.entries.map(entry =>
+          html`
+            <div class="exercise-card ${entry.skipped ? 'is-skipped' : ''}">
+              <div class="exercise-card-header">
+                <div>
+                  <h3>${entry.name}</h3>
+                  ${this.renderMuscleGroupChips(entry.muscleGroups)}
+                </div>
+                <div class="inline">
+                  <wa-button
+                    size="small"
+                    @click=${() => this.openExerciseHistory(entry.exerciseId, entry.name)}
+                    aria-label="Show exercise history"
+                  >
+                    <wa-icon name="clock-rotate-left" label="History"></wa-icon>
+                  </wa-button>
+                  <wa-button
+                    size="small"
+                    @click=${() => this.toggleSkipDraftExercise(entry.exerciseId)}
+                  >${entry.skipped ? 'Unskip' : 'Skip'}</wa-button>
+                </div>
+              </div>
+              ${entry.sets.map(
+                (set, index) => {
+                  const setType = resolveEntrySetType(entry);
+                  return html`
+                  <div class="set-row">
+                    ${setTypeUsesReps(setType)
+                      ? html`
+                          <wa-input
+                            type="number"
+                            size="small"
+                            label="Reps"
+                            aria-label="Reps"
+                            .value=${set.reps}
+                            placeholder=${set.targetReps}
+                            ?disabled=${entry.skipped}
+                            @input=${event => {
+                              const nextValue = this.resolveSpinnerValue(
+                                set,
+                                'reps',
+                                event.target.value,
+                                event.inputType
+                              );
+                              event.target.value = nextValue;
+                              this.updateDraftSet(entry.exerciseId, index, 'reps', nextValue);
+                            }}
+                          ></wa-input>
+                        `
+                      : html``}
+                    ${setTypeUsesTime(setType)
+                      ? html`
+                          <wa-input
+                            type="number"
+                            size="small"
+                            label="Time (sec)"
+                            aria-label="Time in seconds"
+                            .value=${set.time}
+                            placeholder=${set.targetTime}
+                            ?disabled=${entry.skipped}
+                            @input=${event => {
+                              const nextValue = this.resolveSpinnerValue(
+                                set,
+                                'time',
+                                event.target.value,
+                                event.inputType
+                              );
+                              event.target.value = nextValue;
+                              this.updateDraftSet(entry.exerciseId, index, 'time', nextValue);
+                            }}
+                          ></wa-input>
+                        `
+                      : html``}
+                    ${setTypeUsesWeight(setType)
+                      ? html`
+                          <wa-input
+                            type="number"
+                            size="small"
+                            label="Weight"
+                            aria-label="Weight"
+                            .value=${set.weight}
+                            placeholder=${set.targetWeight}
+                            ?disabled=${entry.skipped}
+                            @input=${event => {
+                              const nextValue = this.resolveSpinnerValue(
+                                set,
+                                'weight',
+                                event.target.value,
+                                event.inputType
+                              );
+                              event.target.value = nextValue;
+                              this.updateDraftSet(entry.exerciseId, index, 'weight', nextValue);
+                            }}
+                          ></wa-input>
+                        `
+                      : html``}
+                    <wa-button
+                      class="log-set-btn"
+                      size="small"
+                      variant="primary"
+                      ?disabled=${set.logged || entry.skipped}
+                      @click=${() => this.logDraftSet(entry.exerciseId, index)}
+                    >${set.logged ? 'Logged' : 'Log'}</wa-button>
+                    <wa-button
+                      class="delete-set-btn"
+                      size="small"
+                      variant="danger"
+                      ?disabled=${entry.sets.length === 1 || entry.skipped}
+                      @click=${() => this.removeDraftSet(entry.exerciseId, index)}
+                      aria-label="Delete set"
+                    >
+                      <wa-icon name="xmark" label="Delete set"></wa-icon>
+                    </wa-button>
+                  </div>
+                `;
+                }
+              )}
+              <div class="inline">
+                <wa-button
+                  ?disabled=${entry.skipped}
+                  @click=${() => this.addDraftSet(entry.exerciseId)}
+                >Add set</wa-button>
+              </div>
+              ${entry.skipped ? html`<div class="muted">Skipped for this session.</div>` : html``}
+            </div>
+          `
+        )}
+        <wa-textarea
+          label="Session notes"
+          placeholder="How did it feel?"
+          .value=${this.draftSession.notes}
+          @input=${event => this.updateDraftNotes(event.target.value)}
+        ></wa-textarea>
+        <div class="inline">
+          <wa-button variant="primary" @click=${() => this.saveSession()}>Save session</wa-button>
+          <wa-button variant="danger" @click=${() => {
+            this.saveValidationError = '';
+            this.draftSession = null;
+            this.persist();
+          }}>Discard</wa-button>
+        </div>
+        ${this.saveValidationError
+          ? html`<wa-callout variant="warning">${this.saveValidationError}</wa-callout>`
+          : html``}
+      </div>
+    `;
+  }
+
   renderPrograms() {
     const program = this.programs.find(item => item.id === this.selectedProgramId);
+    const deleteProgramCandidate = this.programs.find(item => item.id === this.deleteProgramCandidateId) || null;
     const selectedWorkout = program?.workouts?.find(item => item.id === this.selectedWorkoutId) || program?.workouts?.[0] || null;
     const search = this.exerciseSearch.trim();
     const lastTrainedByExerciseId = new Map();
@@ -1978,6 +2243,7 @@ ${request}
                 }
               }}
             >Add</wa-button>
+            <wa-button @click=${() => this.openPlannedProgramImportDialog()}>Import Planned Program</wa-button>
           </div>
           <div class="list">
             ${this.programs.map(item =>
@@ -1986,8 +2252,9 @@ ${request}
                   <div>
                     <strong>${item.name}</strong>
                     <div class="muted">
-                      ${item.workouts?.length || 0} workouts ·
-                      ${(item.workouts || []).reduce((count, workout) => count + (workout.exercises?.length || 0), 0)} exercises
+                      ${isPlannedProgram(item)
+                        ? `${item.schedule.sessions.length} planned sessions · ${item.schedule.durationWeeks || 0} weeks`
+                        : `${item.workouts?.length || 0} workouts · ${(item.workouts || []).reduce((count, workout) => count + (workout.exercises?.length || 0), 0)} exercises`}
                     </div>
                   </div>
                   <div class="inline">
@@ -2003,7 +2270,7 @@ ${request}
                       size="small"
                       variant="danger"
                       aria-label="Delete program"
-                      @click=${() => this.deleteProgram(item.id)}
+                      @click=${() => this.requestDeleteProgram(item.id)}
                     >
                       <wa-icon name="xmark" label="Delete program"></wa-icon>
                     </wa-button>
@@ -2122,7 +2389,40 @@ ${request}
       </section>
 
       ${program
-        ? html`
+        ? isPlannedProgram(program)
+          ? html`
+              <section class="section">
+                <div class="stack">
+                  <div class="inline">
+                    <div class="badge">Planned program</div>
+                    <div class="badge">${program.schedule.sessions.length} sessions</div>
+                    <div class="badge">${program.schedule.durationWeeks || 0} weeks</div>
+                  </div>
+                  <div class="list">
+                    ${program.schedule.sessions.slice(0, 12).map((session, index) => html`
+                      <div class="list-item planned-program-preview-item">
+                        <div>
+                          <strong>${session.name}</strong>
+                          <div class="muted">
+                            Week ${session.week} Day ${session.day} · ${session.entries.length} exercises
+                          </div>
+                        </div>
+                        <div class="badge">Session ${Number(session.order ?? index) + 1}</div>
+                      </div>
+                    `)}
+                  </div>
+                  ${program.schedule.sessions.length > 12
+                    ? html`<div class="muted">${program.schedule.sessions.length - 12} more sessions in this plan.</div>`
+                    : html``}
+                  <div class="inline">
+                    <wa-button variant="primary" @click=${() => this.setActiveTab('train', { pushHistory: true })}
+                      >Open In Train</wa-button
+                    >
+                  </div>
+                </div>
+              </section>
+            `
+          : html`
             <section class="section">
               <div class="stack">
                 <div class="inline controls-row">
@@ -2351,6 +2651,156 @@ ${request}
             </section>
           `
         : html``}
+
+      <wa-dialog
+        id="planned-program-import-dialog"
+        label="Import Planned Program"
+        ?open=${this.plannedProgramImportOpen}
+        @wa-after-hide=${() => {
+          this.plannedProgramImportOpen = false;
+        }}
+      >
+        <div class="stack">
+          <wa-textarea
+            label="Program JSON"
+            rows="12"
+            placeholder='{"programName":"Sheiko 12 Week","durationWeeks":12,"trainingMaxesKg":{"squat":180,"bench":120,"deadlift":220},"sessions":[{"week":1,"day":1,"name":"Week 1 Day 1","entries":[{"name":"Bench Press","liftKey":"bench","sets":[{"targetReps":5,"percent":50}]}]}]}'
+            .value=${this.plannedProgramImportJson}
+            @input=${event => {
+              this.plannedProgramImportJson = event.target.value;
+              this.plannedProgramImportError = '';
+            }}
+          ></wa-textarea>
+          ${this.plannedProgramImportError
+            ? html`<wa-callout variant="danger">${this.plannedProgramImportError}</wa-callout>`
+            : html``}
+        </div>
+        <wa-button slot="footer" @click=${() => this.closePlannedProgramImportDialog()}>Cancel</wa-button>
+        <wa-button slot="footer" variant="primary" @click=${() => this.importPlannedProgramFromJson()}>Import</wa-button>
+      </wa-dialog>
+
+      <wa-dialog
+        id="delete-program-dialog"
+        label="Delete program"
+        ?open=${Boolean(deleteProgramCandidate)}
+        @wa-after-hide=${() => {
+          this.deleteProgramCandidateId = '';
+        }}
+      >
+        <div class="stack">
+          <wa-callout variant="warning">
+            This deletes ${deleteProgramCandidate?.name || 'this program'} and its logged sessions from this device.
+          </wa-callout>
+          ${deleteProgramCandidate && isPlannedProgram(deleteProgramCandidate)
+            ? html`<div class="muted">
+                This planned program has ${deleteProgramCandidate.schedule.sessions.length} imported sessions.
+              </div>`
+            : html``}
+        </div>
+        <wa-button slot="footer" @click=${() => this.closeDeleteProgramDialog()}>Cancel</wa-button>
+        <wa-button slot="footer" variant="danger" @click=${() => this.confirmDeleteProgram()}>Delete program</wa-button>
+      </wa-dialog>
+    `;
+  }
+
+  renderPlannedTrainingContent(program) {
+    const progress = getPlannedProgramProgress(program, this.sessions);
+    const nextSession = progress.nextSession;
+    const plannedSessionById = new Map(progress.sessions.map(session => [String(session.id), session]));
+    const incompleteSessions = progress.sessions.filter(session => !progress.completedIds.has(String(session.id)));
+    const completedSessionRecords = this.sessions
+      .filter(session => session.programId === program.id && session.plannedSessionId)
+      .map(session => ({
+        session,
+        planned: plannedSessionById.get(String(session.plannedSessionId)) || null
+      }))
+      .sort((a, b) =>
+        Number(a.planned?.week || a.session.plannedWeek || 0) - Number(b.planned?.week || b.session.plannedWeek || 0) ||
+        Number(a.planned?.day || a.session.plannedDay || 0) - Number(b.planned?.day || b.session.plannedDay || 0) ||
+        Number(b.session.savedAt || 0) - Number(a.session.savedAt || 0)
+      );
+    return html`
+      <div class="stack planned-training-panel">
+        <div class="inline">
+          <div class="badge">${program.name}</div>
+          <div class="badge">Session ${Math.min(progress.completed + 1, progress.total)} / ${progress.total}</div>
+          ${nextSession ? html`<div class="badge">Week ${nextSession.week} Day ${nextSession.day}</div>` : html``}
+        </div>
+
+        ${nextSession
+          ? html`
+              <div class="list-item planned-next-session">
+                <div>
+                  <strong>${nextSession.name}</strong>
+                  <div class="muted">${nextSession.entries.length} exercises prescribed</div>
+                </div>
+                <wa-button variant="primary" @click=${() => this.startPlannedSession(program.id, nextSession.id)}
+                  >${this.draftSession ? 'Restart Session' : 'Start Next Session'}</wa-button
+                >
+              </div>
+            `
+          : html`<wa-callout variant="success">All planned sessions are complete.</wa-callout>`}
+
+        ${this.renderDraftSession()}
+
+        <div class="planned-session-list-section">
+          <h2>Planned Sessions</h2>
+          ${incompleteSessions.length === 0
+            ? html`<div class="muted">No remaining planned sessions.</div>`
+            : html`
+                <div class="list planned-session-list">
+                  ${incompleteSessions.map((session, index) => {
+                    const isNext = nextSession?.id === session.id;
+                    return html`
+                      <div class="list-item planned-session-item">
+                        <div>
+                          <strong>${session.name}</strong>
+                          <div class="muted">
+                            Week ${session.week} Day ${session.day} · ${session.entries.length} exercises
+                          </div>
+                        </div>
+                        <div class="inline">
+                          <div class="badge">${isNext ? 'Next' : `Remaining ${index + 1}`}</div>
+                          <wa-button
+                            size="small"
+                            @click=${() => this.startPlannedSession(program.id, session.id)}
+                          >Start</wa-button>
+                        </div>
+                      </div>
+                    `;
+                  })}
+                </div>
+              `}
+        </div>
+
+        <div class="planned-session-list-section">
+          <h2>Completed Sessions</h2>
+          ${completedSessionRecords.length === 0
+            ? html`<div class="muted">No planned sessions completed yet.</div>`
+            : html`
+                <div class="list planned-session-list">
+                  ${completedSessionRecords.map(({ session, planned }) => {
+                    const totalSets = (session.entries || []).reduce(
+                      (sum, entry) => sum + (entry.sets?.length || 0),
+                      0
+                    );
+                    return html`
+                      <div class="list-item planned-session-item is-complete">
+                        <div>
+                          <strong>${planned?.name || session.workoutName || 'Planned session'}</strong>
+                          <div class="muted">
+                            Week ${planned?.week || session.plannedWeek || '-'} Day ${planned?.day || session.plannedDay || '-'} ·
+                            ${formatDate(session.date)} · ${totalSets} sets logged
+                          </div>
+                        </div>
+                        <div class="badge">Complete</div>
+                      </div>
+                    `;
+                  })}
+                </div>
+              `}
+        </div>
+      </div>
     `;
   }
 
@@ -2361,7 +2811,9 @@ ${request}
     const historyItems = this.historyExerciseId ? this.getExerciseHistory(this.historyExerciseId) : [];
     return html`
       <section class="section">
-        ${program && workout
+        ${program && isPlannedProgram(program)
+          ? this.renderPlannedTrainingContent(program)
+          : program && workout
           ? html`
                 <div class="stack">
                   <wa-select
@@ -2380,156 +2832,7 @@ ${request}
                     >${this.draftSession ? 'Restart Session' : 'Start Session'}</wa-button
                   >
                 </div>
-                ${this.draftSession
-                  ? html`
-                      <div class="stack">
-                        ${this.draftSession.entries.map(entry =>
-                          html`
-                            <div class="exercise-card ${entry.skipped ? 'is-skipped' : ''}">
-                              <div class="exercise-card-header">
-                                <div>
-                                  <h3>${entry.name}</h3>
-                                  ${this.renderMuscleGroupChips(entry.muscleGroups)}
-                                </div>
-                                <div class="inline">
-                                  <wa-button
-                                    size="small"
-                                    @click=${() => this.openExerciseHistory(entry.exerciseId, entry.name)}
-                                    aria-label="Show exercise history"
-                                  >
-                                    <wa-icon name="clock-rotate-left" label="History"></wa-icon>
-                                  </wa-button>
-                                  <wa-button
-                                    size="small"
-                                    @click=${() => this.toggleSkipDraftExercise(entry.exerciseId)}
-                                  >${entry.skipped ? 'Unskip' : 'Skip'}</wa-button>
-                                </div>
-                              </div>
-                              ${entry.sets.map(
-                                (set, index) => {
-                                  const setType = resolveEntrySetType(entry);
-                                  return html`
-                                  <div class="set-row">
-                                    ${setTypeUsesReps(setType)
-                                      ? html`
-                                          <wa-input
-                                            type="number"
-                                            size="small"
-                                            label="Reps"
-                                            aria-label="Reps"
-                                            .value=${set.reps}
-                                            placeholder=${set.targetReps}
-                                            ?disabled=${entry.skipped}
-                                            @input=${event => {
-                                              const nextValue = this.resolveSpinnerValue(
-                                                set,
-                                                'reps',
-                                                event.target.value,
-                                                event.inputType
-                                              );
-                                              event.target.value = nextValue;
-                                              this.updateDraftSet(entry.exerciseId, index, 'reps', nextValue);
-                                            }}
-                                          ></wa-input>
-                                        `
-                                      : html``}
-                                    ${setTypeUsesTime(setType)
-                                      ? html`
-                                          <wa-input
-                                            type="number"
-                                            size="small"
-                                            label="Time (sec)"
-                                            aria-label="Time in seconds"
-                                            .value=${set.time}
-                                            placeholder=${set.targetTime}
-                                            ?disabled=${entry.skipped}
-                                            @input=${event => {
-                                              const nextValue = this.resolveSpinnerValue(
-                                                set,
-                                                'time',
-                                                event.target.value,
-                                                event.inputType
-                                              );
-                                              event.target.value = nextValue;
-                                              this.updateDraftSet(entry.exerciseId, index, 'time', nextValue);
-                                            }}
-                                          ></wa-input>
-                                        `
-                                      : html``}
-                                    ${setTypeUsesWeight(setType)
-                                      ? html`
-                                          <wa-input
-                                            type="number"
-                                            size="small"
-                                            label="Weight"
-                                            aria-label="Weight"
-                                            .value=${set.weight}
-                                            placeholder=${set.targetWeight}
-                                            ?disabled=${entry.skipped}
-                                            @input=${event => {
-                                              const nextValue = this.resolveSpinnerValue(
-                                                set,
-                                                'weight',
-                                                event.target.value,
-                                                event.inputType
-                                              );
-                                              event.target.value = nextValue;
-                                              this.updateDraftSet(entry.exerciseId, index, 'weight', nextValue);
-                                            }}
-                                          ></wa-input>
-                                        `
-                                      : html``}
-                                    <wa-button
-                                      class="log-set-btn"
-                                      size="small"
-                                      variant="primary"
-                                      ?disabled=${set.logged || entry.skipped}
-                                      @click=${() => this.logDraftSet(entry.exerciseId, index)}
-                                    >${set.logged ? 'Logged' : 'Log'}</wa-button>
-                                    <wa-button
-                                      class="delete-set-btn"
-                                      size="small"
-                                      variant="danger"
-                                      ?disabled=${entry.sets.length === 1 || entry.skipped}
-                                      @click=${() => this.removeDraftSet(entry.exerciseId, index)}
-                                      aria-label="Delete set"
-                                    >
-                                      <wa-icon name="xmark" label="Delete set"></wa-icon>
-                                    </wa-button>
-                                  </div>
-                                `;
-                                }
-                              )}
-                              <div class="inline">
-                                <wa-button
-                                  ?disabled=${entry.skipped}
-                                  @click=${() => this.addDraftSet(entry.exerciseId)}
-                                >Add set</wa-button>
-                              </div>
-                              ${entry.skipped ? html`<div class="muted">Skipped for this session.</div>` : html``}
-                            </div>
-                          `
-                        )}
-                        <wa-textarea
-                          label="Session notes"
-                          placeholder="How did it feel?"
-                          .value=${this.draftSession.notes}
-                          @input=${event => this.updateDraftNotes(event.target.value)}
-                        ></wa-textarea>
-                        <div class="inline">
-                          <wa-button variant="primary" @click=${() => this.saveSession()}>Save session</wa-button>
-                          <wa-button variant="danger" @click=${() => {
-                            this.saveValidationError = '';
-                            this.draftSession = null;
-                            this.persist();
-                          }}>Discard</wa-button>
-                        </div>
-                        ${this.saveValidationError
-                          ? html`<wa-callout variant="warning">${this.saveValidationError}</wa-callout>`
-                          : html``}
-                      </div>
-                    `
-                  : html`<div class="muted">Start a session to log sets.</div>`}
+                ${this.renderDraftSession()}
               </div>
             `
           : html`<div class="muted">Create a program and workout first to start training.</div>`}

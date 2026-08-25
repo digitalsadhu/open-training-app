@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "convert:sheiko": "node scripts/convert-sheiko-csv.mjs",
     "test": "node --test --test-reporter=dot"
   },
   "devDependencies": {

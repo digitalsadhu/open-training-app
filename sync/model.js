@@ -168,6 +168,9 @@ const indexLocalRecords = state => {
       name: program.name,
       notes: program.notes || '',
       createdAt: program.createdAt || 0,
+      schedule: program.schedule || null,
+      trainingMaxesKg: program.trainingMaxesKg || {},
+      loadRoundingKg: program.loadRoundingKg ?? '',
       order: programOrder,
       updatedAt: Number(program.updatedAt) || 0,
       deletedAt: program.deletedAt || null,
@@ -275,6 +278,9 @@ export const syncDocToState = (state, syncDoc) => {
       name: program.name || 'Program',
       notes: program.notes || '',
       createdAt: Number(program.createdAt) || 0,
+      schedule: program.schedule || null,
+      trainingMaxesKg: program.trainingMaxesKg || {},
+      loadRoundingKg: program.loadRoundingKg ?? '',
       updatedAt: Number(program.updatedAt) || Date.now(),
       deletedAt: null,
       sourceDeviceId: String(program.sourceDeviceId || ''),
@@ -467,6 +473,9 @@ export const alignSelections = state => {
     selectedProgram?.workouts?.find(item => item.id === state.selectedWorkoutId) ||
     selectedProgram?.workouts?.[0] ||
     null;
+  const isPlannedDraft =
+    Boolean(state.draftSession?.plannedSessionId) &&
+    selectedProgram?.schedule?.type === 'sequence';
 
   return {
     ...state,
@@ -476,7 +485,7 @@ export const alignSelections = state => {
       state.draftSession &&
       selectedProgram &&
       state.draftSession.programId === selectedProgram.id &&
-      (selectedWorkout ? state.draftSession.workoutId === selectedWorkout.id : !state.draftSession.workoutId)
+      (isPlannedDraft || (selectedWorkout ? state.draftSession.workoutId === selectedWorkout.id : !state.draftSession.workoutId))
         ? state.draftSession
         : null
   };

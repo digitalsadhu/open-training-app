@@ -107,3 +107,54 @@ test('sync round trip preserves workout exercise muscle groups', () => {
   const merged = syncDocToState(migrated, doc);
   assert.deepEqual(merged.programs[0].workouts[0].exercises[0].muscleGroups, ['Chest', 'Arms']);
 });
+
+test('sync round trip preserves planned program schedule fields', () => {
+  const state = {
+    ...baseState(),
+    programs: [
+      {
+        id: 'p-plan',
+        name: 'Sheiko 12 Week',
+        notes: '',
+        workouts: [],
+        trainingMaxesKg: { bench: 120 },
+        loadRoundingKg: 2.5,
+        schedule: {
+          type: 'sequence',
+          durationWeeks: 12,
+          sessions: [
+            {
+              id: 'ps1',
+              week: 1,
+              day: 1,
+              name: 'Week 1 Day 1',
+              order: 0,
+              entries: [
+                {
+                  id: 'planned:bench',
+                  exerciseId: 'planned:bench',
+                  name: 'Bench Press',
+                  liftKey: 'bench',
+                  setType: 'reps_weight',
+                  muscleGroups: ['Chest'],
+                  sets: [{ targetReps: 5, targetWeight: '', percent: 50 }]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    selectedProgramId: 'p-plan',
+    selectedWorkoutId: ''
+  };
+
+  const migrated = migrateStateForSync(state, 1_000);
+  const doc = stateToSyncDoc(migrated, migrated.sync.deviceId, 1_100);
+  const merged = syncDocToState(migrated, doc);
+
+  assert.equal(merged.programs[0].schedule.type, 'sequence');
+  assert.equal(merged.programs[0].schedule.sessions[0].entries[0].sets[0].percent, 50);
+  assert.deepEqual(merged.programs[0].trainingMaxesKg, { bench: 120 });
+  assert.equal(merged.programs[0].loadRoundingKg, 2.5);
+});

@@ -1,0 +1,3536 @@
+{
+  "programName": "Sheiko Intermediate Program",
+  "notes": "Converted from Sheiko CSV. CSV weights are imported as explicit targetWeight values in kg.",
+  "durationWeeks": 12,
+  "loadRoundingKg": 2.5,
+  "sessions": [
+    {
+      "id": "week-1-day-1",
+      "week": 1,
+      "day": 1,
+      "name": "Week 1 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 63
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-1-day-2",
+      "week": 1,
+      "day": 2,
+      "name": "Week 1 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-1-day-3",
+      "week": 1,
+      "day": 3,
+      "name": "Week 1 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-2-day-1",
+      "week": 2,
+      "day": 1,
+      "name": "Week 2 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 98
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-2-day-2",
+      "week": 2,
+      "day": 2,
+      "name": "Week 2 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-2-day-3",
+      "week": 2,
+      "day": 3,
+      "name": "Week 2 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-3-day-1",
+      "week": 3,
+      "day": 1,
+      "name": "Week 3 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-3-day-2",
+      "week": 3,
+      "day": 2,
+      "name": "Week 3 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-3-day-3",
+      "week": 3,
+      "day": 3,
+      "name": "Week 3 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-4-day-1",
+      "week": 4,
+      "day": 1,
+      "name": "Week 4 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-4-day-2",
+      "week": 4,
+      "day": 2,
+      "name": "Week 4 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-4-day-3",
+      "week": 4,
+      "day": 3,
+      "name": "Week 4 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-5-day-1",
+      "week": 5,
+      "day": 1,
+      "name": "Week 5 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-5-day-2",
+      "week": 5,
+      "day": 2,
+      "name": "Week 5 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-5-day-3",
+      "week": 5,
+      "day": 3,
+      "name": "Week 5 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-6-day-1",
+      "week": 6,
+      "day": 1,
+      "name": "Week 6 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-6-day-2",
+      "week": 6,
+      "day": 2,
+      "name": "Week 6 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-6-day-3",
+      "week": 6,
+      "day": 3,
+      "name": "Week 6 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-7-day-1",
+      "week": 7,
+      "day": 1,
+      "name": "Week 7 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-7-day-2",
+      "week": 7,
+      "day": 2,
+      "name": "Week 7 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-7-day-3",
+      "week": 7,
+      "day": 3,
+      "name": "Week 7 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-8-day-1",
+      "week": 8,
+      "day": 1,
+      "name": "Week 8 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 63
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 91
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-8-day-2",
+      "week": 8,
+      "day": 2,
+      "name": "Week 8 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 98
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-8-day-3",
+      "week": 8,
+      "day": 3,
+      "name": "Week 8 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-9-day-1",
+      "week": 9,
+      "day": 1,
+      "name": "Week 9 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 68
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 98
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 98
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-9-day-2",
+      "week": 9,
+      "day": 2,
+      "name": "Week 9 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-9-day-3",
+      "week": 9,
+      "day": 3,
+      "name": "Week 9 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-10-day-1",
+      "week": 10,
+      "day": 1,
+      "name": "Week 10 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 72
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 105
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-10-day-2",
+      "week": 10,
+      "day": 2,
+      "name": "Week 10 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 112
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-10-day-3",
+      "week": 10,
+      "day": 3,
+      "name": "Week 10 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 4,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 119
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-11-day-1",
+      "week": 11,
+      "day": 1,
+      "name": "Week 11 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 77
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 112
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-11-day-2",
+      "week": 11,
+      "day": 2,
+      "name": "Week 11 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-11-day-3",
+      "week": 11,
+      "day": 3,
+      "name": "Week 11 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 3,
+              "targetWeight": 86
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-12-day-1",
+      "week": 12,
+      "day": 1,
+      "name": "Week 12 Day 1",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 81
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 81
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 119
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-12-day-2",
+      "week": 12,
+      "day": 2,
+      "name": "Week 12 Day 2",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 86
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 86
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 86
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 126
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "week-12-day-3",
+      "week": 12,
+      "day": 3,
+      "name": "Week 12 Day 3",
+      "entries": [
+        {
+          "name": "Squat",
+          "liftKey": "squat",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 90
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 90
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 90
+            }
+          ]
+        },
+        {
+          "name": "Bench Press",
+          "liftKey": "bench",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Chest",
+            "Arms"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 90
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 90
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 90
+            }
+          ]
+        },
+        {
+          "name": "Deadlift",
+          "liftKey": "deadlift",
+          "setType": "reps_weight",
+          "muscleGroups": [
+            "Back",
+            "Legs",
+            "Glutes"
+          ],
+          "sets": [
+            {
+              "targetReps": 2,
+              "targetWeight": 133
+            },
+            {
+              "targetReps": 2,
+              "targetWeight": 133
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

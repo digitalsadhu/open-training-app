@@ -1,4 +1,4 @@
-const CACHE_NAME = 'training-app-v6';
+const CACHE_NAME = 'training-app-v7';
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -65,8 +65,9 @@ self.addEventListener('fetch', event => {
   ]);
   const isNavigate = request.mode === 'navigate';
   const isAppShell = appShellPaths.has(url.pathname);
+  const isSameOriginModule = isSameOrigin && url.pathname.endsWith('.js');
 
-  if (isSameOrigin && (isNavigate || isAppShell)) {
+  if (isSameOrigin && (isNavigate || isAppShell || isSameOriginModule)) {
     event.respondWith(
       fetch(request)
         .then(response => {

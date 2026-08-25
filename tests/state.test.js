@@ -5,13 +5,16 @@ import {
   addExerciseToWorkoutState,
   addWorkoutToProgramState,
   computeProgressionForEntry,
+  createPlannedProgramState,
   createProgramState,
+  getPlannedProgramProgress,
   getRepRangeForPriority,
   logDraftSetState,
   moveExerciseInWorkoutState,
   removeDraftSetState,
   removeExerciseFromWorkoutState,
   removeWorkoutFromProgramState,
+  startPlannedSessionState,
   startSessionState,
   updateDraftSetState,
   updateWorkoutDefaultsState
@@ -32,6 +35,94 @@ test('addWorkoutToProgramState adds named workouts', () => {
   const next = addWorkoutToProgramState(programs, 'p1', 'Upper A', () => 'w1');
   assert.equal(next.programs[0].workouts.length, 1);
   assert.equal(next.programs[0].workouts[0].name, 'Upper A');
+});
+
+test('createPlannedProgramState imports scheduled sessions and resolves percentage loads', () => {
+  let id = 0;
+  const createId = () => `id-${++id}`;
+  const result = createPlannedProgramState([], {
+    programName: 'Sheiko 12 Week',
+    durationWeeks: 12,
+    trainingMaxesKg: { bench: 123 },
+    loadRoundingKg: 2.5,
+    sessions: [
+      {
+        week: 1,
+        day: 1,
+        entries: [
+          {
+            name: 'Bench Press',
+            liftKey: 'bench',
+            sets: [
+              { targetReps: 5, percent: 50 },
+              { targetReps: 4, targetWeight: 80 }
+            ]
+          }
+        ]
+      }
+    ]
+  }, createId, 1_000);
+
+  const program = result.program;
+  assert.equal(program.name, 'Sheiko 12 Week');
+  assert.equal(program.schedule.type, 'sequence');
+  assert.equal(program.schedule.durationWeeks, 12);
+  assert.equal(program.schedule.sessions[0].id, 'id-1');
+  assert.equal(program.schedule.sessions[0].entries[0].exerciseId, 'planned:bench');
+
+  const draft = startPlannedSessionState(program, '', [], createId, '2026-02-13');
+  assert.equal(draft.plannedSessionId, 'id-1');
+  assert.equal(draft.plannedWeek, 1);
+  assert.equal(draft.plannedDay, 1);
+  assert.equal(draft.entries[0].sets[0].targetReps, 5);
+  assert.equal(draft.entries[0].sets[0].targetWeight, 62.5);
+  assert.equal(draft.entries[0].sets[1].targetWeight, 80);
+});
+
+test('createPlannedProgramState rejects invalid planned program JSON', () => {
+  const createId = () => 'id';
+  assert.throws(
+    () => createPlannedProgramState([], { programName: 'Bad', sessions: [] }, createId),
+    /at least one session/
+  );
+  assert.throws(
+    () => createPlannedProgramState([], { programName: 'Bad', sessions: [{ week: 0, day: 1, entries: [] }] }, createId),
+    /positive numeric week and day/
+  );
+  assert.throws(
+    () => createPlannedProgramState([], { programName: 'Bad', sessions: [{ week: 1, day: 1, entries: [{ name: '', sets: [] }] }] }, createId),
+    /missing an exercise name/
+  );
+  assert.throws(
+    () => createPlannedProgramState([], { programName: 'Bad', sessions: [{ week: 1, day: 1, entries: [{ name: 'Bench', sets: [{}] }] }] }, createId),
+    /needs reps, time, targetWeight, or percent/
+  );
+});
+
+test('planned program progress advances by completed session sequence, not date', () => {
+  let id = 0;
+  const createId = () => `id-${++id}`;
+  const program = createPlannedProgramState([], {
+    programName: 'Sequence Plan',
+    sessions: [
+      { id: 's1', week: 1, day: 1, entries: [{ name: 'Bench', sets: [{ targetReps: 5 }] }] },
+      { id: 's2', week: 1, day: 2, entries: [{ name: 'Squat', sets: [{ targetReps: 5 }] }] },
+      { id: 's3', week: 2, day: 1, entries: [{ name: 'Deadlift', sets: [{ targetReps: 5 }] }] }
+    ]
+  }, createId).program;
+
+  const staleSession = {
+    programId: program.id,
+    plannedSessionId: 's1',
+    date: '2026-01-01',
+    entries: []
+  };
+  const progress = getPlannedProgramProgress(program, [staleSession]);
+  assert.equal(progress.completed, 1);
+  assert.equal(progress.nextSession.id, 's2');
+
+  const draft = startPlannedSessionState(program, '', [staleSession], createId, '2026-05-24');
+  assert.equal(draft.plannedSessionId, 's2');
 });
 
 test('addExerciseToWorkoutState inserts exercise once', () => {
